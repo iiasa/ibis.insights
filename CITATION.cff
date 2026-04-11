@@ -8,7 +8,7 @@ message: 'To cite package "insights" in publications use:'
 type: software
 license: CC-BY-4.0
 title: 'insights: An R implementation of the InSiGHTS framework'
-version: '0.5'
+version: '0.7'
 abstract: The package provides an implementation of the InSiGHTS modelling framework
   for creating climate and land-use indicators. This package acts a simple wrapper
   to do an area-of-habitat refinements on top of climatic envelope models or species
