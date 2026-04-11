@@ -7,17 +7,17 @@
 st_clamp(env, lb = -Inf, ub = Inf)
 }
 \arguments{
-\item{env}{The original variable stacks as \code{\link{SpatRaster}} or \code{\link{stars}}.}
+\item{env}{The original variable stacks as \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or \code{\link{stars}}.}
 
 \item{lb}{The lower bound for clamping (Default: \code{-Inf}).}
 
-\item{ub}{The lower bound for clamping (Default: \code{Inf}).}
+\item{ub}{The upper bound for clamping (Default: \code{Inf}).}
 }
 \value{
 The same as input \code{'env'}.
 }
 \description{
-This small helper function simply clamps the a given \code{\link{SpatRaster}} or \code{\link{stars}} object \
+This small helper function simply clamps a given \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or \code{\link{stars}} object
 to a provided range. This can help to adjust for example land-use fractions for use
 in \code{insights_fraction()}.
 }

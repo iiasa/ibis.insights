@@ -12,24 +12,24 @@ insights_area(range, lu, other, outfile = NULL)
 
 \S4method{insights_area}{stars,stars,ANY,character}(range,lu,other,outfile)
 
-\S4method{insights_area}{stars,stars,ANY,character}(range,lu,other,outfile)
+\S4method{insights_area}{stars,SpatRaster,ANY,character}(range,lu,other,outfile)
 
 \S4method{insights_area}{ANY,ANY,SpatRaster,character}(range,lu,other,outfile)
 }
 \arguments{
-\item{range}{A \code{\link{SpatRaster}} or temporal \code{\link{stars}} object describing the estimated distribution of a
+\item{range}{A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object describing the estimated distribution of a
 biodiversity feature (e.g. species). Alternatively a \code{DistributionModel} fitted with \code{ibis.iSDM} package can be supplied.}
 
-\item{lu}{A \code{\link{SpatRaster}} or temporal \code{\link{stars}} object of the future land-use areas to be applied to the range.
+\item{lu}{A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object of the future land-use areas to be applied to the range.
 \strong{Each layer has to be in units of area, so greater 0}}
 
-\item{other}{Any other \code{\link{SpatRaster}} or temporal \code{\link{stars}} objects that describe suitable conditions for the species.}
+\item{other}{Any other \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} objects that describe suitable conditions for the species.}
 
-\item{outfile}{A writeable \code{\link{character}} of where the output should be written to. If missing, the the function will return
-a \code{\link{SpatRaster}} or \code{\link{stars}} object respectively.}
+\item{outfile}{A writeable \code{\link{character}} of where the output should be written to. If missing, the function will return
+a \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or \code{\link{stars}} object respectively.}
 }
 \value{
-Either a \code{\link{SpatRaster}} or temporal \code{\link{stars}} object or nothing if outputs are written directly to drive.
+Either a \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object or nothing if outputs are written directly to drive.
 }
 \description{
 This function applies an area-of-habitat (AOH) correction to a provided single time step or multiple step range estimate

@@ -7,7 +7,7 @@
 create_derivate_range(env, varname, co, to_binary = FALSE)
 }
 \arguments{
-\item{env}{The original variable stacks as \code{\link{SpatRaster}} or \code{\link{stars}}.}
+\item{env}{The original variable stacks as \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or \code{\link{stars}}.}
 
 \item{varname}{A \code{\link{character}} of the variable name. Needs to be present in
 \code{"env"}.}
@@ -19,7 +19,7 @@ create_derivate_range(env, varname, co, to_binary = FALSE)
 format or left in the original units (Default: \code{FALSE}).}
 }
 \value{
-A \code{\link{SpatRaster}} object containing the predictor range.
+A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} object containing the predictor range.
 }
 \description{
 The purpose of this function is to create the range from several derivative

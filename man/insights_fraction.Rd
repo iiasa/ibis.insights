@@ -12,27 +12,27 @@ insights_fraction(range, lu, other, outfile = NULL, clamp = FALSE)
 
 \S4method{insights_fraction}{stars,stars,ANY,character,logical}(range,lu,other,outfile,clamp)
 
-\S4method{insights_fraction}{stars,stars,ANY,character,logical}(range,lu,other,outfile,clamp)
+\S4method{insights_fraction}{stars,SpatRaster,ANY,character,logical}(range,lu,other,outfile,clamp)
 
 \S4method{insights_fraction}{ANY,ANY,SpatRaster,character,logical}(range,lu,other,outfile,clamp)
 }
 \arguments{
-\item{range}{A \code{\link{SpatRaster}} or temporal \code{\link{stars}} object describing the estimated distribution of a
+\item{range}{A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object describing the estimated distribution of a
 biodiversity feature (e.g. species). \strong{Has to be in binary format!}
 Alternatively a \code{DistributionModel} fitted with \code{ibis.iSDM} package can be supplied.}
 
-\item{lu}{A \code{\link{SpatRaster}} or temporal \code{\link{stars}} object of the future land-use fractions to be applied to the range.
+\item{lu}{A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object of the future land-use fractions to be applied to the range.
 \strong{Each layer has to be in units of fractions, e.g. between 0 and 1.}}
 
-\item{other}{Any other \code{\link{SpatRaster}} or temporal \code{\link{stars}} objects that describe suitable conditions for the species.}
+\item{other}{Any other \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} objects that describe suitable conditions for the species.}
 
-\item{outfile}{A writeable \code{\link{character}} of where the output should be written to. If missing, the the function will return
-a \code{\link{SpatRaster}} or \code{\link{stars}} object respectively.}
+\item{outfile}{A writeable \code{\link{character}} of where the output should be written to. If missing, the function will return
+a \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or \code{\link{stars}} object respectively.}
 
 \item{clamp}{A \code{\link{logical}} on whether lu should be clamped to 0 and 1 beforehand (Default: \code{FALSE}).}
 }
 \value{
-Either a \code{\link{SpatRaster}} or temporal \code{\link{stars}} object or nothing if outputs are written directly to drive.
+Either a \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object or nothing if outputs are written directly to drive.
 }
 \description{
 This function applies an area-of-habitat (AOH) correction to a provided single time step or multiple step range estimate

@@ -11,9 +11,9 @@ insights_summary(obj, toArea = TRUE, fun = "sum", relative = TRUE)
 \S4method{insights_summary}{stars,logical,character,logical}(obj,toArea,fun,relative)
 }
 \arguments{
-\item{obj}{A \code{\link{SpatRaster}} or temporal \code{\link{stars}} object describing with the
+\item{obj}{A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object with the
 applied InSiGHTS outputs from \code{insights_fraction}. If the number of layers is greater
-than 1, the parameter \code{"relative"} mgiht be applied.}
+than 1, the parameter \code{"relative"} might be applied.}
 
 \item{toArea}{A \code{\link{logical}} flag whether the suitable habitat should be summarized to area (Default: \code{TRUE})?}
 

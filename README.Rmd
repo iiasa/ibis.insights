@@ -16,10 +16,10 @@ knitr::opts_chunk$set(
 # Implementation of the InSiGHTS framework
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/iiasa/insights/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/iiasa/insights/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/iiasa/insights/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: CC BY 4.0](https://img.shields.io/badge/license-CC BY 4.0-blue.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Codecov Status](https://codecov.io/gh/iiasa/insights/branch/main/graph/badge.svg)](https://app.codecov.io/gh/iiasa/insights?branch=main)<!-- badges: end -->
+[![Codecov Status](https://codecov.io/gh/iiasa/ibis.insights/branch/main/graph/badge.svg)](https://app.codecov.io/gh/iiasa/ibis.insights?branch=main)<!-- badges: end -->
 
 This R-package provides a IIASA implementation of the InSiGHTS Index of Habitat Availability. The index
 captures the amount of suitable habitat within the current or a future range of a species. This range can be taken either from existing range maps (e.g. IUCN) or from estimates obtained through species distribution models.
@@ -39,9 +39,9 @@ The package is part of the [IIASA-BEC](https://iiasa.ac.at/programs/bnr/bec) sui
 
 You can install the development version of Insights from [GitHub](https://github.com/) with:
 
-``` r
+```{r, eval = FALSE}
 # install.packages("devtools")
-devtools::install_github("iiasa/insights")
+devtools::install_github("iiasa/ibis.insights")
 ```
 The package depends on the [ibis.iSDM](https://iiasa.github.io/ibis.iSDM/) package, which is currently only available via github.
 
@@ -84,8 +84,8 @@ virtual_points <- ibis.iSDM::add_pseudoabsence(virtual_points,
 
 # Now train a small little model
 fit <- distribution(background) |> # Prediction domain
-  add_biodiversity_poipa(virtual_points) |> # Add presence-only point data
-  add_predictors(predictors) |> # Add simple predictors
+  add_biodiversity_poipa(virtual_points,field_occurrence = 'Observed') |> # Add presence-only point data
+  add_predictors(predictors,transform = 'scale') |> # Add simple predictors
   engine_glmnet() |> # Use glmnet for estimation
   train(verbose = FALSE) |> # Train the model 
   threshold(method = "perc", value = .33) # Percentile threshold
@@ -143,7 +143,8 @@ plot(o$suitability~o$band, type = "b",
 
 ## Citations
 
-See [CITATION.cff] file
+See [CITATION.cff] file for the recommended citation of this package. 
+For the InSiGHTS framework, please cite:
 
 P. Visconti, M. Bakkenes, D. Baisero, T. Brooks, S.H.M. Butchart, L. Joppa, R. Alkemade, M. Di Marco, L. Santini, M. Hoffmann, C. Rondinini
 _Projecting global biodiversity indicators under future development scenarios_ Conserv. Lett., 9 (2016), pp. 5-13 [DOI](https://doi.org/10.1111/conl.12159)

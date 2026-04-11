@@ -5,13 +5,13 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/iiasa/insights/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/iiasa/insights/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/iiasa/insights/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: CC BY
 4.0](https://img.shields.io/badge/license-CC%20BY%204.0-blue.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Codecov
-Status](https://codecov.io/gh/iiasa/insights/branch/main/graph/badge.svg)](https://app.codecov.io/gh/iiasa/insights?branch=main)<!-- badges: end -->
+Status](https://codecov.io/gh/iiasa/ibis.insights/branch/main/graph/badge.svg)](https://app.codecov.io/gh/iiasa/ibis.insights?branch=main)<!-- badges: end -->
 
 This R-package provides a IIASA implementation of the InSiGHTS Index of
 Habitat Availability. The index captures the amount of suitable habitat
@@ -49,7 +49,7 @@ You can install the development version of Insights from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("iiasa/insights")
+devtools::install_github("iiasa/ibis.insights")
 ```
 
 The package depends on the
@@ -63,7 +63,9 @@ currently only available via github.
 library(ibis.iSDM)
 library(insights)
 library(glmnet)
+#> Warning: package 'Matrix' was built under R version 4.5.3
 library(terra)
+#> Warning: package 'terra' was built under R version 4.5.3
 ```
 
 Now we use the **ibis.iSDM** package to train a simple SDM and apply the
@@ -98,8 +100,8 @@ virtual_points <- ibis.iSDM::add_pseudoabsence(virtual_points,
 
 # Now train a small little model
 fit <- distribution(background) |> # Prediction domain
-  add_biodiversity_poipa(virtual_points) |> # Add presence-only point data
-  add_predictors(predictors) |> # Add simple predictors
+  add_biodiversity_poipa(virtual_points,field_occurrence = 'Observed') |> # Add presence-only point data
+  add_predictors(predictors,transform = 'scale') |> # Add simple predictors
   engine_glmnet() |> # Use glmnet for estimation
   train(verbose = FALSE) |> # Train the model 
   threshold(method = "perc", value = .33) # Percentile threshold
@@ -120,14 +122,14 @@ plot(out, col = c("grey90", "#FDE8A9", "#FBD35C", "#D1C34A", "#8EB65C",
      main = "Suitable habitat")
 ```
 
-<img src="man/figures/README-Train a simple SDM-1.png" width="100%" />
+<img src="man/figures/README-Train a simple SDM-1.png" alt="" width="100%" />
 
 ``` r
 
 # Summarize
 insights_summary(out)
 #>   time suitability unit
-#> 1   NA    265314.1  km2
+#> 1   NA    257678.9  km2
 ```
 
 Of course it is also possible to directly supply a multi-dimensional
@@ -141,21 +143,24 @@ sc <- scenario(fit) |>
   add_predictors(env = pred_climate, transform = 'scale', derivates = "none") |>
   threshold() |>
   project()
-#> [32m[Setup] 2023-07-29 18:05:07 | Adding scenario predictors...[39m
-#> [32m[Setup] 2023-07-29 18:05:07 | Transforming predictors...[39m
-#> [32m[Scenario] 2023-07-29 18:05:08 | Starting suitability projections for 9 timesteps.[39m
+#> ! State variable of transformation not found?
+#> [32m[Scenario] 2026-04-11 23:11:28.85695 | Adding scenario predictors...[39m
+#> [32m[Setup] 2026-04-11 23:11:28.857741 | Transforming predictors...[39m
+#> [32m[Scenario] 2026-04-11 23:11:29.563382 | Starting suitability projections for 9 timesteps from 2015-01-01 <> 2095-01-01[39m
 
 # --- #
 # Now apply insights using time series of future land use
 lu <- pred_future |> stars:::select.stars(primn, secdf)
 # Normalize for the sake of an example. Note that fractions are needed!
 lu <- ibis.iSDM::predictor_transform(lu, "norm") |> round(2) 
+#> [31m[Setup] 2026-04-11 23:11:30.483115 | When transforming future variables, ensure that unit ranges are comparable (parameter state)![39m
 out <- insights_fraction(range = sc,
                          lu = lu)
 
 # Summarize
 o <- insights_summary(out)
-#> Linking to GEOS 3.9.3, GDAL 3.5.2, PROJ 8.2.1; sf_use_s2() is FALSE
+#> Warning: package 'sf' was built under R version 4.5.2
+#> Linking to GEOS 3.13.1, GDAL 3.11.4, PROJ 9.7.0; sf_use_s2() is FALSE
 
 plot(o$suitability~o$band, type = "b",
      main = "InSiGHTS index",
@@ -163,12 +168,12 @@ plot(o$suitability~o$band, type = "b",
      xlab = "Year")
 ```
 
-<img src="man/figures/README-With scenario-1.png" width="100%" />
+<img src="man/figures/README-With scenario-1.png" alt="" width="100%" />
 
 ## Citations
 
-Jung M (2023). *insights: An R implementation of the InSiGHTS
-framework*. R package version 0.2.
+See \[CITATION.cff\] file for the recommended citation of this package.
+For the InSiGHTS framework, please cite:
 
 P. Visconti, M. Bakkenes, D. Baisero, T. Brooks, S.H.M. Butchart, L.
 Joppa, R. Alkemade, M. Di Marco, L. Santini, M. Hoffmann, C. Rondinini

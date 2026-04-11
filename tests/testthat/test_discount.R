@@ -60,7 +60,7 @@ test_that('insights_discount formula is correct', {
 
   out <- insights_discount(lu, age, discount = 0.5)
   # Expected: 0.6 * (1 - (1-0.5)^3) = 0.6 * (1 - 0.125) = 0.6 * 0.875 = 0.525
-  expect_equal(terra::values(out)[1, 1], 0.525, tolerance = 1e-10)
+  expect_equal(as.numeric(terra::values(out)[1, 1]), 0.525, tolerance = 1e-10)
 })
 
 test_that('insights_discount at age=0 gives zero', {
@@ -74,7 +74,7 @@ test_that('insights_discount at age=0 gives zero', {
 
   out <- insights_discount(lu, age, discount = 0.5)
   # At age=0: factor = 1 - (1-0.5)^0 = 1 - 1 = 0
-  expect_equal(terra::values(out)[1, 1], 0, tolerance = 1e-10)
+  expect_equal(as.numeric(terra::values(out)[1, 1]), 0, tolerance = 1e-10)
 })
 
 test_that('insights_discount at high age gives near-full value', {
@@ -88,7 +88,7 @@ test_that('insights_discount at high age gives near-full value', {
 
   out <- insights_discount(lu, age, discount = 0.5)
   # At age=50: factor = 1 - (0.5)^50 ≈ 1.0
-  expect_equal(terra::values(out)[1, 1], 0.8, tolerance = 1e-6)
+  expect_equal(as.numeric(terra::values(out)[1, 1]), 0.8, tolerance = 1e-6)
 })
 
 test_that('insights_discount validates inputs', {

@@ -7,7 +7,7 @@
 relChange(v, fac = 100)
 }
 \arguments{
-\item{v}{A \code{\link{vector}} with numeric values greater than 2.}
+\item{v}{A \code{\link{numeric}} vector with length greater than 1.}
 
 \item{fac}{A \code{\link{numeric}} constant multiplier on the resulting metric.}
 }
