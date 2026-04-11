@@ -5,9 +5,9 @@
 #' biodiversity feature into an index. If a single timestep (or object with a single layer)
 #' is provided, this function simply summarizes the suitable area.
 #'
-#' @param obj A [`SpatRaster`] or temporal [`stars`] object describing with the
+#' @param obj A [`SpatRaster`] or temporal [`stars`] object with the
 #' applied InSiGHTS outputs from \code{insights_fraction}. If the number of layers is greater
-#' than 1, the parameter \code{"relative"} mgiht be applied.
+#' than 1, the parameter \code{"relative"} might be applied.
 #' @param toArea A [`logical`] flag whether the suitable habitat should be summarized to area (Default: \code{TRUE})?
 #' @param fun A [`character`] indicating the summary function to be applied (Default: \code{'sum'}).
 #' Currently supported are \code{'sum'}, \code{'min'}, \code{'max'}, \code{'median'} and \code{'mean'}.
@@ -67,9 +67,16 @@ methods::setMethod(
 
     # --- #
     # Summarize
+    # terra::global does not support "median"; handle separately
+    if(fun == "median"){
+      suitability_vals <- sapply(seq_len(terra::nlyr(obj)), function(i)
+        stats::median(terra::values(obj[[i]]), na.rm = TRUE))
+    } else {
+      suitability_vals <- terra::global(obj, fun, na.rm = TRUE)[, 1]
+    }
     results <- data.frame(
       time = terra::time(obj),
-      suitability = terra::global(obj, fun, na.rm = TRUE)[,1]
+      suitability = suitability_vals
     )
     results$unit <- unit
 

@@ -1,7 +1,7 @@
 Package: insights
 Title: An R implementation of the InSiGHTS framework
-Version: 0.6
-Year: 2024
+Version: 0.7
+Year: 2025
 Authors@R: 
     person("Martin", "Jung", , "jung@iiasa.ac.at", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-7569-1390"))

@@ -18,7 +18,7 @@
 #' @param lu A [`SpatRaster`] or temporal [`stars`] object of the future land-use fractions to be applied to the range.
 #' **Each layer has to be in units of fractions, e.g. between 0 and 1.**
 #' @param other Any other [`SpatRaster`] or temporal [`stars`] objects that describe suitable conditions for the species.
-#' @param outfile A writeable [`character`] of where the output should be written to. If missing, the the function will return
+#' @param outfile A writeable [`character`] of where the output should be written to. If missing, the function will return
 #' a [`SpatRaster`] or [`stars`] object respectively.
 #' @param clamp A [`logical`] on whether lu should be clamped to 0 and 1 beforehand (Default: \code{FALSE}).
 #'
@@ -138,7 +138,7 @@ methods::setMethod(
       assertthat::assert_that(dir.exists(dirname(outfile)),
                               msg = "Output file directory does not exist!")
       # Correct output file name depending on type
-      if(is.Raster(range) && tolower(tools::file_ext(outfile))!="tif"){
+      if(ibis.iSDM::is.Raster(range) && tolower(tools::file_ext(outfile))!="tif"){
         outfile <- paste0(outfile, ".tif")
       } else if(inherits(range, "stars") && tolower(tools::file_ext(outfile))!="nc"){
         outfile <- paste0(outfile, ".nc")
@@ -226,8 +226,10 @@ methods::setMethod(
     if(clamp) lu <- st_clamp(lu, lb = 0, ub = 1)
 
     # Then convert each time step to a SpatRaster and pass to insights_fraction
+    n_times <- length(unique(times))
+    pb <- utils::txtProgressBar(min = 0, max = n_times, style = 3)
     proj <- terra::rast()
-    for(tt in 1:length(unique(times))){
+    for(tt in 1:n_times){
       # Make a slice
       s <- lu |> stars:::slice.stars('time', tt)
       # Convert to raster
@@ -236,12 +238,14 @@ methods::setMethod(
                               msg = "Values larger than 1 found?")
       o <- insights_fraction(range = range,
                              lu = s,
-                             # other = other,
+                             other = other,
                              outfile = NULL)
       suppressWarnings(
         proj <- c(proj, o)
       )
+      utils::setTxtProgressBar(pb, tt)
     }
+    close(pb)
     # Finally convert to stars and rename
     proj <- stars::st_as_stars(proj,
                                crs = sf::st_crs(range)
@@ -333,12 +337,10 @@ methods::setMethod(
 
     # --- #
     # Check that both sets of layers are comparable
-    dims1 <- stars::st_dimensions(range)
-    dims2 <- stars::st_dimensions(lu)
     # If x or y differ, rewarp
     if(all( range(stars::st_get_dimension_values(lu, 1)) != range(stars::st_get_dimension_values(range, 1)) )){
       lu <- stars::st_warp(lu, range,
-                           cellsize = st_res(range),
+                           cellsize = stars::st_res(range),
                            use_gdal = FALSE,
                            method = "near")
     }
@@ -362,7 +364,7 @@ methods::setMethod(
 
 #' @name insights_fraction
 #' @rdname insights_fraction
-#' @usage \S4method{insights_fraction}{stars,stars,ANY,character,logical}(range,lu,other,outfile,clamp)
+#' @usage \S4method{insights_fraction}{stars,SpatRaster,ANY,character,logical}(range,lu,other,outfile,clamp)
 methods::setMethod(
   "insights_fraction",
   methods::signature(range = "stars", lu = "SpatRaster"),
@@ -400,7 +402,7 @@ methods::setMethod(
       assertthat::assert_that(dir.exists(dirname(outfile)),
                               msg = "Output file directory does not exist!")
       # Correct output file name depending on type
-      if((inherits(lu, "stars") || ibis.iSDM:::is.Raster(lu))
+      if((inherits(lu, "stars") || ibis.iSDM::is.Raster(lu))
          && tolower(tools::file_ext(outfile))!="nc"){
         outfile <- paste0(outfile, ".nc")
       }
@@ -422,8 +424,10 @@ methods::setMethod(
 
     # --- #
     # Then convert each time step to a SpatRaster and pass to insights_fraction
+    n_times <- length(unique(times))
+    pb <- utils::txtProgressBar(min = 0, max = n_times, style = 3)
     proj <- terra::rast()
-    for(tt in 1:length(unique(times))){
+    for(tt in 1:n_times){
       # Make a slice
       s <- range |> stars:::slice.stars('time', tt)
       # Convert to raster
@@ -432,12 +436,14 @@ methods::setMethod(
                               msg = "Values in range larger than 1 found?")
       o <- insights_fraction(range = s,
                              lu = lu,
-                             # other = other,
+                             other = other,
                              outfile = NULL)
       suppressWarnings(
         proj <- c(proj, o)
       )
+      utils::setTxtProgressBar(pb, tt)
     }
+    close(pb)
     # Finally convert to stars and rename
     proj <- stars::st_as_stars(proj,
                                crs = sf::st_crs(range)
