@@ -2,27 +2,41 @@
 # CITATION file created with {cffr} R package
 # See also: https://docs.ropensci.org/cffr/
 # --------------------------------------------
-
+ 
 cff-version: 1.2.0
 message: 'To cite package "insights" in publications use:'
 type: software
 license: CC-BY-4.0
 title: 'insights: An R implementation of the InSiGHTS framework'
 version: '0.8'
-abstract: The package provides an implementation of the InSiGHTS modelling framework
-  for creating climate and land-use indicators. This package acts a simple wrapper
-  to do an area-of-habitat refinements on top of climatic envelope models or species
-  distribution models (SDMs). By default it is assumed that such models are obtained
-  through the ibis.iSDM package and this package contains a simple wrapper to link
-  the two approaches.
+abstract: Implements the InSiGHTS (Index of Habitat Availability) modelling framework
+  for assessing how climate change and land-use change affect the availability of
+  suitable habitat for species over time. The package refines binary range maps or
+  probabilistic species distribution models (SDMs) with fractional land-use layers
+  to produce area-of-habitat (AOH) estimates across present and future time steps.
+  An optional temporal discount function accounts for habitat maturity, allowing newly
+  established land cover to be weighted according to its effective ecological value.
+  Output summaries express habitat availability as absolute area or as a relative
+  index with respect to a user-defined reference year. The package is designed to
+  work seamlessly with the ibis.iSDM package but can also accept any SpatRaster or
+  stars object as range input.
 authors:
 - family-names: Jung
   given-names: Martin
   email: jung@iiasa.ac.at
   orcid: https://orcid.org/0000-0002-7569-1390
+repository-code: https://github.com/iiasa/insights
+url: https://iiasa.github.io/insights/
 contact:
 - family-names: Jung
   given-names: Martin
   email: jung@iiasa.ac.at
   orcid: https://orcid.org/0000-0002-7569-1390
+keywords:
+- area-of-habitat
+- biodiversity
+- biodiversity-indicators
+- iucn
+- land-use
+- range
 
