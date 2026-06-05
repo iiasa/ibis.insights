@@ -1,0 +1,50 @@
+url: https://iiasa.github.io/insights/
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#1F6E8C"
+    border-radius: 0.25rem
+  includes:
+    in_header: |
+      <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["\\(", "\\)"]],
+          displayMath: [["$$", "$$"]]
+        }
+      };
+      </script>
+      <script
+        defer
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+      </script>
+
+home:
+  title: insights
+  description: >
+    InSiGHTS habitat availability indicators for standalone raster workflows
+    and ibis.iSDM model outputs.
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
+
+reference:
+- title: Apply InSiGHTS
+  desc: Refine range or suitability estimates with habitat, land-use, and maturity layers.
+  contents:
+  - insights_fraction
+  - insights_area
+  - insights_discount
+- title: Summarize Indicators
+  desc: Convert refined habitat rasters into area totals or relative indicators.
+  contents:
+  - insights_summary
+  - relChange
+  - relChangeSym
+- title: Helpers
+  contents:
+  - st_clamp
+  - create_derivate_range

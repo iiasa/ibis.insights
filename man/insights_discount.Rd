@@ -4,28 +4,29 @@
 \alias{insights_discount}
 \title{Apply temporal discount to land-use layers based on an age variable}
 \usage{
-insights_discount(lu, age, discount = 0.5)
+insights_discount(lu, age, target_age = 20, target = 0.95)
 
-\S4method{insights_discount}{SpatRaster,SpatRaster,numeric}(lu,age,discount)
+\S4method{insights_discount}{SpatRaster,SpatRaster}(lu,age,target_age,target)
 
-\S4method{insights_discount}{SpatRaster,stars,numeric}(lu,age,discount)
+\S4method{insights_discount}{SpatRaster,stars}(lu,age,target_age,target)
 
-\S4method{insights_discount}{stars,SpatRaster,numeric}(lu,age,discount)
+\S4method{insights_discount}{stars,SpatRaster}(lu,age,target_age,target)
 
-\S4method{insights_discount}{stars,stars,numeric}(lu,age,discount)
+\S4method{insights_discount}{stars,stars}(lu,age,target_age,target)
 }
 \arguments{
-\item{lu}{A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object of the land-use
+\item{lu}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object of the land-use
 variable (e.g. forest fraction or area). Can be single or multi-layer.}
 
-\item{age}{A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object of the
+\item{age}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object of the
 corresponding age or maturity variable (values \code{>= 0}).
 Must match \code{lu} in number of layers / time steps.}
 
-\item{discount}{A \code{\link{numeric}} discount rate strictly between 0 and 1
-(exclusive). Higher values mean faster value accumulation (light
-discounting); lower values mean slower accumulation (heavy discounting).
-Default: \code{0.5}.}
+\item{target_age}{A single positive \code{\link{numeric}} age at which habitat reaches
+\code{target} of full value. Default: \code{20}.}
+
+\item{target}{A single \code{\link{numeric}} target maturity value strictly between
+\code{0} and \code{1}. Default: \code{0.95}.}
 }
 \value{
 A discounted version of \code{lu} in the same format as the input.
@@ -37,29 +38,59 @@ to a specific land-use class (e.g. forest age linked to forest fraction) and
 represents increasing value over time.
 
 Newly established habitat (low age) does not provide full habitat value.
-The discount parameter controls how quickly the age translates to effective
-habitat value. The function produces a discounted version of \code{lu} by
-applying a discount factor derived from the age:
+The \code{target_age} parameter controls how quickly the age translates to
+effective habitat value: it is the age at which habitat reaches
+\code{target} of its full value. The function produces a discounted version
+of \code{lu} by applying a maturity factor derived from the age:
 
-\deqn{\mathrm{effective\_lu} = \mathrm{lu} \times \left(1 - (1 - \mathrm{discount})^{\mathrm{age}}\right)}
+\deqn{H_{\mathrm{eff}} = H \times [1 - (1 - p)^{a / a_p}]}{H_eff = H * (1 - (1 - p)^(a / a_p))}
+
+where \eqn{H} is the land-use value, \eqn{a} is the cell age,
+\eqn{a_p} is \code{target_age}, and \eqn{p} is \code{target}. Internally,
+this is equivalent to deriving the per-age discount rate:
+
+\deqn{d = 1 - (1 - p)^{1 / a_p}}{d = 1 - (1 - p)^(1 / a_p)}
+
+and applying:
+
+\deqn{H_{\mathrm{eff}} = H \times [1 - (1 - d)^a]}{H_eff = H * (1 - (1 - d)^a)}
 
 \itemize{
-\item At \code{age = 0}: the factor is \code{0} — no habitat value for
+\item At \code{age = 0}: the factor is \code{0} -- no habitat value for
 brand-new land-use.
-\item As \code{age} increases: the factor approaches \code{1} — mature
+\item At \code{age = target_age}: the factor is \code{target}, e.g.
+\code{0.95} by default.
+\item As \code{age} increases: the factor approaches \code{1} -- mature
 habitat reaches full value.
-\item A higher \code{discount} means the age accumulates effective value
-faster (light discounting); a lower value means slower accumulation
-(heavy discounting).
 }
 }
 \examples{
-\dontrun{
- # Discount forest fraction by forest age
- lu_discounted <- insights_discount(lu_forest, age_forest, discount = 0.3)
- # Then use in InSiGHTS refinement
- out <- insights_fraction(range, lu_discounted)
-}
+require(terra)
+# Load package example rasters
+range <- terra::rast(system.file(
+  "extdata/example_range.tif", package = "insights", mustWork = TRUE
+))
+lu <- terra::rast(system.file(
+  "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+))
+lu <- lu / 10000
+
+# Use sparse vegetation as a simple proxy for habitat age/maturity.
+# In real applications, use an age or maturity layer for the same land-use class.
+age <- terra::rast(system.file(
+  "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+))
+age <- age / 10000
+age <- age * 20
+
+# Specify that habitat reaches 95\% of full value at age 20.
+lu_discounted <- insights_discount(lu, age, target_age = 20, target = 0.95)
+out1 <- insights_fraction(range = range, lu = lu)
+out2 <- insights_fraction(range = range, lu = lu_discounted)
+op <- graphics::par(mfrow = c(1, 2))
+terra::plot(out1, main = "Original grassland")
+terra::plot(out2, main = "Discounted grassland")
+graphics::par(op)
 }
 \author{
 Martin Jung

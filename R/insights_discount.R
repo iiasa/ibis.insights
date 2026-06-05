@@ -7,20 +7,30 @@
 #' represents increasing value over time.
 #'
 #' Newly established habitat (low age) does not provide full habitat value.
-#' The discount parameter controls how quickly the age translates to effective
-#' habitat value. The function produces a discounted version of \code{lu} by
-#' applying a discount factor derived from the age:
+#' The \code{target_age} parameter controls how quickly the age translates to
+#' effective habitat value: it is the age at which habitat reaches
+#' \code{target} of its full value. The function produces a discounted version
+#' of \code{lu} by applying a maturity factor derived from the age:
 #'
-#' \deqn{\mathrm{effective\_lu} = \mathrm{lu} \times \left(1 - (1 - \mathrm{discount})^{\mathrm{age}}\right)}
+#' \deqn{H_{\mathrm{eff}} = H \times [1 - (1 - p)^{a / a_p}]}{H_eff = H * (1 - (1 - p)^(a / a_p))}
+#'
+#' where \eqn{H} is the land-use value, \eqn{a} is the cell age,
+#' \eqn{a_p} is \code{target_age}, and \eqn{p} is \code{target}. Internally,
+#' this is equivalent to deriving the per-age discount rate:
+#'
+#' \deqn{d = 1 - (1 - p)^{1 / a_p}}{d = 1 - (1 - p)^(1 / a_p)}
+#'
+#' and applying:
+#'
+#' \deqn{H_{\mathrm{eff}} = H \times [1 - (1 - d)^a]}{H_eff = H * (1 - (1 - d)^a)}
 #'
 #' \itemize{
-#'   \item At \code{age = 0}: the factor is \code{0} — no habitat value for
+#'   \item At \code{age = 0}: the factor is \code{0} -- no habitat value for
 #'     brand-new land-use.
-#'   \item As \code{age} increases: the factor approaches \code{1} — mature
+#'   \item At \code{age = target_age}: the factor is \code{target}, e.g.
+#'     \code{0.95} by default.
+#'   \item As \code{age} increases: the factor approaches \code{1} -- mature
 #'     habitat reaches full value.
-#'   \item A higher \code{discount} means the age accumulates effective value
-#'     faster (light discounting); a lower value means slower accumulation
-#'     (heavy discounting).
 #' }
 #'
 #' @param lu A [`SpatRaster`] or temporal [`stars`] object of the land-use
@@ -28,22 +38,41 @@
 #' @param age A [`SpatRaster`] or temporal [`stars`] object of the
 #'   corresponding age or maturity variable (values \code{>= 0}).
 #'   Must match \code{lu} in number of layers / time steps.
-#' @param discount A [`numeric`] discount rate strictly between 0 and 1
-#'   (exclusive). Higher values mean faster value accumulation (light
-#'   discounting); lower values mean slower accumulation (heavy discounting).
-#'   Default: \code{0.5}.
-#'
+#' @param target_age A single positive [`numeric`] age at which habitat reaches
+#'   \code{target} of full value. Default: \code{20}.
+#' @param target A single [`numeric`] target maturity value strictly between
+#'   \code{0} and \code{1}. Default: \code{0.95}.
 #' @returns A discounted version of \code{lu} in the same format as the input.
 #' @author Martin Jung
 #' @importClassesFrom terra SpatRaster
 #' @importFrom ibis.iSDM is.Raster
 #' @examples
-#' \dontrun{
-#'  # Discount forest fraction by forest age
-#'  lu_discounted <- insights_discount(lu_forest, age_forest, discount = 0.3)
-#'  # Then use in InSiGHTS refinement
-#'  out <- insights_fraction(range, lu_discounted)
-#' }
+#' require(terra)
+#' # Load package example rasters
+#' range <- terra::rast(system.file(
+#'   "extdata/example_range.tif", package = "insights", mustWork = TRUE
+#' ))
+#' lu <- terra::rast(system.file(
+#'   "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+#' ))
+#' lu <- lu / 10000
+#'
+#' # Use sparse vegetation as a simple proxy for habitat age/maturity.
+#' # In real applications, use an age or maturity layer for the same land-use class.
+#' age <- terra::rast(system.file(
+#'   "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+#' ))
+#' age <- age / 10000
+#' age <- age * 20
+#'
+#' # Specify that habitat reaches 95% of full value at age 20.
+#' lu_discounted <- insights_discount(lu, age, target_age = 20, target = 0.95)
+#' out1 <- insights_fraction(range = range, lu = lu)
+#' out2 <- insights_fraction(range = range, lu = lu_discounted)
+#' op <- graphics::par(mfrow = c(1, 2))
+#' terra::plot(out1, main = "Original grassland")
+#' terra::plot(out2, main = "Discounted grassland")
+#' graphics::par(op)
 #' @name insights_discount
 #' @export
 NULL
@@ -55,22 +84,27 @@ NULL
 methods::setGeneric(
   "insights_discount",
   signature = methods::signature("lu", "age"),
-  function(lu, age, discount = 0.5) standardGeneric("insights_discount"))
+  function(lu, age, target_age = 20, target = 0.95) {
+    standardGeneric("insights_discount")
+  })
 
 #' @name insights_discount
 #' @rdname insights_discount
-#' @usage \S4method{insights_discount}{SpatRaster,SpatRaster,numeric}(lu,age,discount)
+#' @usage \S4method{insights_discount}{SpatRaster,SpatRaster}(lu,age,target_age,target)
 methods::setMethod(
   "insights_discount",
   methods::signature(lu = "SpatRaster", age = "SpatRaster"),
-  function(lu, age, discount = 0.5) {
+  function(lu, age, target_age = 20, target = 0.95) {
     assertthat::assert_that(
       ibis.iSDM::is.Raster(lu),
       ibis.iSDM::is.Raster(age),
-      is.numeric(discount),
-      length(discount) == 1,
-      discount > 0,
-      discount < 1
+      is.numeric(target_age),
+      length(target_age) == 1,
+      target_age > 0,
+      is.numeric(target),
+      length(target) == 1,
+      target > 0,
+      target < 1
     )
 
     # Check that age values are non-negative
@@ -99,7 +133,8 @@ methods::setMethod(
     }
 
     # --- #
-    # Apply discount: effective_lu = lu * (1 - (1 - discount)^age)
+    # Apply calibrated maturity factor.
+    discount <- 1 - (1 - target)^(1 / target_age)
     n <- terra::nlyr(lu)
     pb <- utils::txtProgressBar(min = 0, max = n, style = 3)
     out <- terra::rast()
@@ -121,37 +156,43 @@ methods::setMethod(
 
 #' @name insights_discount
 #' @rdname insights_discount
-#' @usage \S4method{insights_discount}{SpatRaster,stars,numeric}(lu,age,discount)
+#' @usage \S4method{insights_discount}{SpatRaster,stars}(lu,age,target_age,target)
 methods::setMethod(
   "insights_discount",
   methods::signature(lu = "SpatRaster", age = "stars"),
-  function(lu, age, discount = 0.5) {
+  function(lu, age, target_age = 20, target = 0.95) {
     # Convert stars age to SpatRaster and delegate
     age <- terra::rast(age)
-    insights_discount(lu = lu, age = age, discount = discount)
+    insights_discount(
+      lu = lu,
+      age = age,
+      target_age = target_age,
+      target = target
+    )
   }
 )
 
 #' @name insights_discount
 #' @rdname insights_discount
-#' @usage \S4method{insights_discount}{stars,SpatRaster,numeric}(lu,age,discount)
+#' @usage \S4method{insights_discount}{stars,SpatRaster}(lu,age,target_age,target)
 methods::setMethod(
   "insights_discount",
   methods::signature(lu = "stars", age = "SpatRaster"),
-  function(lu, age, discount = 0.5) {
+  function(lu, age, target_age = 20, target = 0.95) {
     # Convert stars lu to SpatRaster, apply discount, convert back
     assertthat::assert_that(
       inherits(lu, "stars"),
-      ibis.iSDM::is.Raster(age),
-      is.numeric(discount),
-      length(discount) == 1,
-      discount > 0,
-      discount < 1
+      ibis.iSDM::is.Raster(age)
     )
 
     # Convert lu to SpatRaster
     lu_rast <- terra::rast(lu)
-    out_rast <- insights_discount(lu = lu_rast, age = age, discount = discount)
+    out_rast <- insights_discount(
+      lu = lu_rast,
+      age = age,
+      target_age = target_age,
+      target = target
+    )
 
     # Convert back to stars preserving dimensions
     proj <- stars::st_as_stars(out_rast, crs = sf::st_crs(lu))
@@ -167,18 +208,21 @@ methods::setMethod(
 
 #' @name insights_discount
 #' @rdname insights_discount
-#' @usage \S4method{insights_discount}{stars,stars,numeric}(lu,age,discount)
+#' @usage \S4method{insights_discount}{stars,stars}(lu,age,target_age,target)
 methods::setMethod(
   "insights_discount",
   methods::signature(lu = "stars", age = "stars"),
-  function(lu, age, discount = 0.5) {
+  function(lu, age, target_age = 20, target = 0.95) {
     assertthat::assert_that(
       inherits(lu, "stars"),
       inherits(age, "stars"),
-      is.numeric(discount),
-      length(discount) == 1,
-      discount > 0,
-      discount < 1
+      is.numeric(target_age),
+      length(target_age) == 1,
+      target_age > 0,
+      is.numeric(target),
+      length(target) == 1,
+      target > 0,
+      target < 1
     )
 
     # Check that stars lu has a time dimension
@@ -214,6 +258,7 @@ methods::setMethod(
     }
 
     # Process each time step
+    discount <- 1 - (1 - target)^(1 / target_age)
     n_times <- length(unique(times))
     pb <- utils::txtProgressBar(min = 0, max = n_times, style = 3)
 

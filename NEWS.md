@@ -1,6 +1,12 @@
+# ibis.insights 0.8
+
+* Multiple documentation fixes and pkgdown rendering added.
+* `insights_discount()` function now working on age to maturity/full condition
+
 # ibis.insights 0.7
 
 * New `insights_discount()` function for land-use layers with an associated age or maturity variable (e.g. forest age). Discounts the effective land-use value based on the age variable so that newly established habitat does not count at full value immediately.
+* `insights_discount()` now lets users specify `target_age`, the age at which habitat reaches `target` value (default `0.95`), rather than requiring a direct discount rate.
 * Progress bars for temporal processing implemented in `insights_fraction()`, `insights_area()`, and `insights_discount()`.
 
 # ibis.insights 0.6

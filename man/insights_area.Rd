@@ -2,11 +2,11 @@
 % Please edit documentation in R/insights_area.R
 \name{insights_area}
 \alias{insights_area}
-\title{Apply InSiGHTS with continuous areal land use data}
+\title{Apply InSiGHTS with continuous areal land-use data}
 \usage{
 insights_area(range, lu, other, outfile = NULL)
 
-\S4method{insights_area}{SpatRaster,SpatRaster,SpatRaster,character}(range,lu,other,outfile)
+\S4method{insights_area}{SpatRaster,SpatRaster,ANY,character}(range,lu,other,outfile)
 
 \S4method{insights_area}{SpatRaster,stars,ANY,character}(range,lu,other,outfile)
 
@@ -14,42 +14,65 @@ insights_area(range, lu, other, outfile = NULL)
 
 \S4method{insights_area}{stars,SpatRaster,ANY,character}(range,lu,other,outfile)
 
-\S4method{insights_area}{ANY,ANY,SpatRaster,character}(range,lu,other,outfile)
+\S4method{insights_area}{ANY,ANY,ANY,character}(range,lu,other,outfile)
 }
 \arguments{
-\item{range}{A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object describing the estimated distribution of a
-biodiversity feature (e.g. species). Alternatively a \code{DistributionModel} fitted with \code{ibis.iSDM} package can be supplied.}
+\item{range}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object describing the estimated distribution of a
+biodiversity feature (e.g. species). Values must be binary or fractional in \code{[0, 1]}.
+Alternatively a \code{DistributionModel} fitted with \code{ibis.iSDM} package can be supplied.}
 
-\item{lu}{A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object of the future land-use areas to be applied to the range.
-\strong{Each layer has to be in units of area, so greater 0}}
+\item{lu}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object of the future land-use areas to be applied to the range.
+\strong{Each layer has to be in area units and greater than or equal to 0.} Multi-layer inputs are summed.}
 
-\item{other}{Any other \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} objects that describe suitable conditions for the species.}
+\item{other}{Optional \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object describing additional suitable conditions for the species.
+Values must already be suitability weights in \code{[0, 1]}.}
 
 \item{outfile}{A writeable \code{\link{character}} of where the output should be written to. If missing, the function will return
-a \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or \code{\link{stars}} object respectively.}
+a \code{\link[terra:SpatRaster]{SpatRaster}} or \code{\link{stars}} object respectively. Missing \code{.tif} or \code{.nc} extensions are added as needed.}
 }
 \value{
-Either a \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object or nothing if outputs are written directly to drive.
+Either a \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object or nothing if outputs are written directly to drive.
 }
 \description{
-This function applies an area-of-habitat (AOH) correction to a provided single time step or multiple step range estimate
-(binary or other format). This thus assumes that species-habitat relations remain stable also in future conditions within a
-provided climatic niche.
+Apply an area-of-habitat (AOH) refinement to a binary or fractional range
+estimate using land-use or habitat layers already expressed as area per cell.
+Use this method when \code{lu} values are continuous areal units such as
+\code{km2}. For cell shares or suitability weights in \code{[0, 1]}, use
+\code{\link[=insights_fraction]{insights_fraction()}} instead.
 
-Opposed to \code{\link{insights_fraction}} it is assumed that the land-use layers come in continuous areal units,
-such as \code{'km2'}.
-Optionally also a elevation (\code{elev}) layer and habitat condition (\code{condition}) can be provided to support refinements
-by elevational range or habitat condition.
+If \code{lu} has multiple layers or attributes, they are summed before being
+applied to the range. Optional \code{other} layers can be supplied as
+additional suitability or condition masks, but they must already be scaled to
+\code{[0, 1]}; raw environmental layers such as elevation should be converted
+to a suitability mask before calling this function.
+
+Raster inputs are reprojected, cropped, and resampled to the range geometry
+when needed. Temporal \code{\link{stars}} inputs may use a \code{time} or \code{Time}
+dimension name. If \code{outfile} is supplied, the extension is adjusted to
+\code{.tif} for raster output or \code{.nc} for \code{\link{stars}} output.
 }
 \note{
-This function does not do the refinement of land-use fraction to relevant habitats.
-This needs to be done by the analyst a-priori.
-\emph{No checks are conducted on whether area shares match or exceed certain amounts!}
+This function does not infer species-habitat relationships from raw land-use
+classes. Select, weight, or transform land-use and condition layers before
+calling \code{insights_area()}.
+\emph{No checks are conducted on whether supplied area layers add up to the area
+of a grid cell.}
 }
 \examples{
-\dontrun{
- out <- insights_area(range, landuse_km2)
-}
+require(terra)
+range <- terra::rast(system.file(
+  "extdata/example_range.tif", package = "insights", mustWork = TRUE
+))
+lu_fraction <- terra::rast(system.file(
+  "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+)) / 10000
+
+# Convert a fractional land-use layer to area per cell in km2.
+lu_km2 <- lu_fraction * terra::cellSize(lu_fraction, unit = "km")
+out <- insights_area(range = range, lu = lu_km2)
+
+# The output is already in area units, so do not multiply by cell area again.
+insights_summary(out, toArea = FALSE)
 
 }
 \references{

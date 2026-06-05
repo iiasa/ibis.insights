@@ -2,29 +2,51 @@
 % Please edit documentation in R/st_clamp.R
 \name{st_clamp}
 \alias{st_clamp}
-\title{Clamp stars to a specific bounds or range}
+\title{Clamp raster values to specific bounds}
 \usage{
-st_clamp(env, lb = -Inf, ub = Inf)
+st_clamp(env, lb = -Inf, ub = Inf, lower = lb, upper = ub)
 }
 \arguments{
-\item{env}{The original variable stacks as \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or \code{\link{stars}}.}
+\item{env}{A \code{\link[terra:SpatRaster]{terra::SpatRaster}} or \code{\link{stars}} object.}
 
-\item{lb}{The lower bound for clamping (Default: \code{-Inf}).}
+\item{lb}{A single \code{\link{numeric}} lower bound for clamping. Defaults to
+\code{-Inf}, which leaves the lower tail unchanged.}
 
-\item{ub}{The upper bound for clamping (Default: \code{Inf}).}
+\item{ub}{A single \code{\link{numeric}} upper bound for clamping. Defaults to
+\code{Inf}, which leaves the upper tail unchanged.}
+
+\item{lower}{Alias for \code{lb}.}
+
+\item{upper}{Alias for \code{ub}.}
 }
 \value{
-The same as input \code{'env'}.
+An object of the same class as \code{env}, with values clamped to
+\code{[lb, ub]}.
 }
 \description{
-This small helper function simply clamps a given \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or \code{\link{stars}} object
-to a provided range. This can help to adjust for example land-use fractions for use
-in \code{insights_fraction()}.
+Clamp all cell values in a \code{\link[terra:SpatRaster]{terra::SpatRaster}} or \code{\link{stars}} object to a
+provided numeric interval. Values below the lower bound are set to the lower
+bound, and values above the upper bound are set to the upper bound. Missing
+values are preserved.
+
+This is useful for keeping suitability, fractional land-use, or habitat
+condition layers inside valid ranges before they are passed to functions such
+as \code{\link[=insights_fraction]{insights_fraction()}}.
+}
+\details{
+For \code{\link[terra:SpatRaster]{terra::SpatRaster}} inputs, \code{st_clamp()} delegates to
+\code{\link[terra:clamp]{terra::clamp()}}. For \code{\link{stars}} inputs, each attribute array is clamped
+directly with \code{\link[=pmax]{pmax()}} and \code{\link[=pmin]{pmin()}}, preserving the original dimensions
+and attribute names.
 }
 \examples{
-\dontrun{
-  # Use
-}
+require(terra)
+r <- terra::rast(nrow = 2, ncol = 2, vals = c(-0.2, 0.4, 1.2, NA))
+st_clamp(r, lower = 0, upper = 1)
+
+require(stars)
+s <- stars::st_as_stars(r)
+st_clamp(s, lower = 0, upper = 1)
 
 }
 \author{

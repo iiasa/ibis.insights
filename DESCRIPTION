@@ -1,15 +1,27 @@
 Package: insights
 Title: An R implementation of the InSiGHTS framework
-Version: 0.7
+Version: 0.8
 Year: 2025
 Authors@R: 
     person("Martin", "Jung", , "jung@iiasa.ac.at", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-7569-1390"))
-Description: The package provides an implementation of the InSiGHTS modelling framework for creating climate and land-use indicators. This package acts a simple wrapper to do an area-of-habitat refinements on top of climatic envelope models or species distribution models (SDMs). By default it is assumed that such models are obtained through the ibis.iSDM package and this package contains a simple wrapper to link the two approaches.
+Description: Implements the InSiGHTS (Index of Habitat Availability) modelling
+    framework for assessing how climate change and land-use change affect the
+    availability of suitable habitat for species over time. The package refines
+    binary range maps or probabilistic species distribution models (SDMs) with
+    fractional land-use layers to produce area-of-habitat (AOH) estimates across
+    present and future time steps. An optional temporal discount function accounts
+    for habitat maturity, allowing newly established land cover to be weighted
+    according to its effective ecological value. Output summaries express habitat
+    availability as absolute area or as a relative index with respect to a
+    user-defined reference year. The package is designed to work seamlessly with
+    the ibis.iSDM package but can also accept any SpatRaster or stars object as
+    range input.
 License: CC BY 4.0
+URL: https://github.com/iiasa/insights, https://iiasa.github.io/insights/
+BugReports: https://github.com/iiasa/insights/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Imports: 
     ibis.iSDM,
     sf (>= 1.0-17),
@@ -25,5 +37,10 @@ Remotes:
 Depends: 
     R (>= 4.2.0)
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    pkgdown
+VignetteBuilder: knitr
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0

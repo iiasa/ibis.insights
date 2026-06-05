@@ -55,6 +55,16 @@ test_that('insights_area accepts lu values greater than 1', {
   expect_no_error(out <- insights_area(range = range, lu = lu_km2))
   expect_s4_class(out, "SpatRaster")
   expect_gte(terra::global(out, "min", na.rm = TRUE)[, 1], 0)
+
+  df <- insights_summary(out, toArea = FALSE, relative = FALSE)
+  expect_s3_class(df, "data.frame")
+  expect_gt(df$suitability, 1)
+
+  expect_warning(
+    df_warn <- insights_summary(out, toArea = TRUE, relative = FALSE),
+    regexp = "already in area"
+  )
+  expect_equal(df_warn$suitability, df$suitability)
 })
 
 test_that('insights_area validates inputs', {
@@ -136,6 +146,52 @@ test_that('insights_area works with an other layer', {
 
   # other values > 1 should error
   expect_error(insights_area(range = range, lu = lu, other = other + 1.5))
+})
+
+test_that('insights_area applies other across raster and stars inputs', {
+
+  skip_if_not_installed("terra")
+  skip_if_not_installed("stars")
+  suppressWarnings(requireNamespace("terra", quietly = TRUE))
+  suppressWarnings(requireNamespace("stars", quietly = TRUE))
+
+  range <- terra::rast(nrow = 4, ncol = 4, xmin = 0, xmax = 4,
+                       ymin = 0, ymax = 4, vals = 1, crs = "EPSG:3857")
+  lu <- terra::rast(nrow = 4, ncol = 4, xmin = 0, xmax = 4,
+                    ymin = 0, ymax = 4, vals = 2, crs = "EPSG:3857")
+  other <- terra::rast(nrow = 4, ncol = 4, xmin = 0, xmax = 4,
+                       ymin = 0, ymax = 4, vals = 0.5, crs = "EPSG:3857")
+  other_st <- stars::st_as_stars(other)
+
+  out_raster <- insights_area(range = range, lu = lu, other = other_st)
+  expect_s4_class(out_raster, "SpatRaster")
+  expect_equal(terra::global(out_raster, "mean", na.rm = TRUE)[1, 1], 1)
+
+  range_ts <- c(range, range)
+  lu_ts <- c(lu, lu)
+  terra::time(range_ts) <- as.Date(c("2020-01-01", "2040-01-01"))
+  terra::time(lu_ts) <- as.Date(c("2020-01-01", "2040-01-01"))
+  range_st <- stars::st_as_stars(range_ts)
+  lu_st <- stars::st_as_stars(lu_ts)
+
+  range_dims <- stars::st_dimensions(range_st)
+  names(range_dims)[3] <- "Time"
+  stars::st_dimensions(range_st) <- range_dims
+
+  lu_dims <- stars::st_dimensions(lu_st)
+  names(lu_dims)[3] <- "Time"
+  stars::st_dimensions(lu_st) <- lu_dims
+
+  out_without <- insights_area(range = range_st, lu = lu_st)
+  out_with <- insights_area(range = range_st, lu = lu_st, other = other_st)
+  expect_s3_class(out_with, "stars")
+  expect_lt(sum(out_with[[1]], na.rm = TRUE), sum(out_without[[1]], na.rm = TRUE))
+
+  out_st_r <- insights_area(range = range_st, lu = lu, other = other_st)
+  expect_s3_class(out_st_r, "stars")
+
+  out_r_st <- insights_area(range = range, lu = lu_st, other = other)
+  expect_s3_class(out_r_st, "stars")
 })
 
 test_that('insights_area works with a multi-layer range (time series)', {

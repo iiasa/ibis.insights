@@ -4,23 +4,36 @@
 \alias{insights_summary}
 \title{Summarize inSiGHTS into an index}
 \usage{
-insights_summary(obj, toArea = TRUE, fun = "sum", relative = TRUE)
+insights_summary(
+  obj,
+  toArea = TRUE,
+  fun = "sum",
+  relative = TRUE,
+  symmetric = FALSE
+)
 
-\S4method{insights_summary}{SpatRaster,logical,character,logical}(obj,toArea,fun,relative)
+\S4method{insights_summary}{SpatRaster,logical,character,logical,logical}(obj,toArea,fun,relative,symmetric)
 
-\S4method{insights_summary}{stars,logical,character,logical}(obj,toArea,fun,relative)
+\S4method{insights_summary}{stars,logical,character,logical,logical}(obj,toArea,fun,relative,symmetric)
 }
 \arguments{
-\item{obj}{A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object with the
-applied InSiGHTS outputs from \code{insights_fraction}. If the number of layers is greater
-than 1, the parameter \code{"relative"} might be applied.}
+\item{obj}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object with the
+applied InSiGHTS outputs from \code{insights_fraction} or \code{insights_area}.
+If the number of layers is greater than 1, the parameter \code{"relative"}
+might be applied.}
 
-\item{toArea}{A \code{\link{logical}} flag whether the suitable habitat should be summarized to area (Default: \code{TRUE})?}
+\item{toArea}{A \code{\link{logical}} flag whether fractional suitable habitat should
+be multiplied by cell area before summarizing (Default: \code{TRUE}).
+Use \code{FALSE} for outputs from \code{insights_area()}, which are already
+in area units.}
 
 \item{fun}{A \code{\link{character}} indicating the summary function to be applied (Default: \code{'sum'}).
 Currently supported are \code{'sum'}, \code{'min'}, \code{'max'}, \code{'median'} and \code{'mean'}.}
 
 \item{relative}{A \code{\link{logical}} flag whether a relative index is to be constructed (Default: \code{TRUE}).}
+
+\item{symmetric}{A \code{\link{logical}} flag whether to additionally compute the symmetric relative
+difference (Default: \code{FALSE}). Requires \code{relative = TRUE}.}
 }
 \value{
 A \code{\link{data.frame}} with area estimates or the respective indicator.
@@ -29,6 +42,37 @@ A \code{\link{data.frame}} with area estimates or the respective indicator.
 This function handily summarizes the suitable habitat for a given species or
 biodiversity feature into an index. If a single timestep (or object with a single layer)
 is provided, this function simply summarizes the suitable area.
+}
+\details{
+When \code{relative = TRUE}, the standard relative change (in percent) is computed as
+\eqn{D(t) = (x_t - x_0) / x_0 \times 100}.
+
+When \code{symmetric = TRUE}, the symmetric relative difference is also reported as
+an additional column \code{relative_change_sym}:
+
+\deqn{D_{sym}(t) = \frac{x_t - x_0}{x_t + x_0}}
+
+This metric is bounded in \eqn{[-1, 1]} and is preferred over the standard relative
+change when the baseline habitat area \eqn{x_0} is small (causing the standard
+metric to become arbitrarily large), or when a bounded, symmetric index is needed
+for cross-species comparisons. Requires the baseline suitability (\eqn{x_0}) to be
+positive.
+}
+\examples{
+require(terra)
+range <- terra::rast(system.file(
+  "extdata/example_range.tif", package = "insights", mustWork = TRUE
+))
+lu <- terra::rast(system.file(
+  "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+)) / 10000
+
+out <- insights_fraction(range = range, lu = lu)
+insights_summary(out, relative = FALSE)
+
+ts <- c(out, out * 0.8, out * 0.6)
+terra::time(ts, tstep = "years") <- c(2020, 2040, 2060)
+insights_summary(ts, relative = TRUE, symmetric = TRUE)
 }
 \references{
 \itemize{

@@ -7,19 +7,19 @@
 create_derivate_range(env, varname, co, to_binary = FALSE)
 }
 \arguments{
-\item{env}{The original variable stacks as \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or \code{\link{stars}}.}
+\item{env}{The original variable stacks as \code{\link[terra:SpatRaster]{SpatRaster}} or \code{\link{stars}}.}
 
 \item{varname}{A \code{\link{character}} of the variable name. Needs to be present in
 \code{"env"}.}
 
 \item{co}{A set of coefficients obtained via \code{\link[stats:coef]{stats::coef()}} and a
-\code{\link[ibis.iSDM:BiodiversityDistribution-class]{ibis.iSDM::BiodiversityDistribution}} object.}
+\code{\link[ibis.iSDM:BiodiversityDistribution]{ibis.iSDM::BiodiversityDistribution}} object.}
 
 \item{to_binary}{A \code{\link{logical}} flag if the output should be converted to binary
 format or left in the original units (Default: \code{FALSE}).}
 }
 \value{
-A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} object containing the predictor range.
+A \code{\link[terra:SpatRaster]{SpatRaster}} object containing the predictor range.
 }
 \description{
 The purpose of this function is to create the range from several derivative

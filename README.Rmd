@@ -13,39 +13,60 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Implementation of the InSiGHTS framework
+# insights: InSiGHTS Index of Habitat Availability
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/iiasa/insights/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![License: CC BY 4.0](https://img.shields.io/badge/license-CC BY 4.0-blue.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![License: CC BY 4.0](https://img.shields.io/badge/license-CC%20BY%204.0-blue.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Codecov Status](https://codecov.io/gh/iiasa/ibis.insights/branch/main/graph/badge.svg)](https://app.codecov.io/gh/iiasa/ibis.insights?branch=main)<!-- badges: end -->
 
-This R-package provides a IIASA implementation of the InSiGHTS Index of Habitat Availability. The index
-captures the amount of suitable habitat within the current or a future range of a species. This range can be taken either from existing range maps (e.g. IUCN) or from estimates obtained through species distribution models.
+The **ibis.insights** package implements the InSiGHTS (Index of Habitat Availability) framework for quantifying how climate change and land-use change affect the available habitat of a species over time. The index captures the extent of suitable habitat within the current or projected range of a species, with ranges sourced from existing maps (e.g. IUCN) or from species distribution models (SDMs).
 
-<img src="man/figures/insights_schematic.png" alt="Schematic" align="right" width="300"/>
+<img src="man/figures/ibis.insights_schematic.png" alt="Schematic" align="right" width="300"/>
 
-In it's basic configuration, the InSiGHTS framework combines the climatic suitability from a SDM with a area of habitat (AOH) refinement to obtain the suitable habitat for each time steps.
-The InSiGHTS Index of Habitat Availability can then be defined for any given species $s$ and timestep $t$ as:
+In its basic configuration, the InSiGHTS framework combines climatic suitability from an SDM with an area-of-habitat (AOH) refinement to derive suitable habitat for each time step.
+The InSiGHTS Index of Habitat Availability is defined for a given species $s$ and time step $t$ as:
 
 $Insights_{s,t} = \frac{AOH_{s,t} - AOH_{s, t_{ref}}}{AOH_{s, t_{ref}}}$, where $t_{ref}$ indicates a reference or starting year.
 
 More information on the InSiGHTS framework can be found in [Pearson et al. 2004](https://doi.org/10.1046/j.1466-822X.2003.00042.x), [Rondini and Visconti 2015](https://doi.org/10.1111/cobi.12532), [Visconti et al. 2016](https://doi.org/10.1111/conl.12159) or [Baisero et al. (2021)](https://doi.org/10.1016/j.oneear.2020.05.015).
 
-The package is part of the [IIASA-BEC](https://iiasa.ac.at/programs/bnr/bec) suite of biodiversity indicators and is coupled with the [ibis.iSDM](https://iiasa.github.io/ibis.iSDM/) species distribution model. 
+The package is part of the [IIASA-BEC](https://iiasa.ac.at/programs/bnr/bec) suite of biodiversity indicators and integrates tightly with the [ibis.iSDM](https://iiasa.github.io/ibis.iSDM/) species distribution modelling package, though any `SpatRaster` or `stars` range object can be used as input.
 
 ## Installation
 
-You can install the development version of Insights from [GitHub](https://github.com/) with:
+You can install the development version of **ibis.insights** from [GitHub](https://github.com/iiasa/ibis.insights) with:
 
 ```{r, eval = FALSE}
 # install.packages("devtools")
 devtools::install_github("iiasa/ibis.insights")
 ```
-The package depends on the [ibis.iSDM](https://iiasa.github.io/ibis.iSDM/) package, which is currently only available via github.
+
+The package depends on [ibis.iSDM](https://iiasa.github.io/ibis.iSDM/), which is also only available from GitHub:
+
+```{r, eval = FALSE}
+devtools::install_github("iiasa/ibis.iSDM")
+```
 
 ## Basic usage and examples
+
+### Which method should I use?
+
+Use `insights_fraction()` when habitat or land-use layers are fractions or
+suitability weights in `[0, 1]`. Multiple land-use layers are summed, so pass
+only the classes that are relevant for the species and use `clamp = TRUE` if the
+combined suitability should be capped at one.
+
+Use `insights_area()` when land-use layers are already expressed as area per
+cell, for example `km2`. The output is then already in area units, so summarize
+it with `insights_summary(..., toArea = FALSE)` to avoid multiplying by cell
+area again.
+
+Use `insights_discount()` before either method when a habitat class should be
+weighted by an age or maturity layer. Use `insights_summary()` after either
+workflow to obtain absolute totals, standard relative change, or the bounded
+symmetric relative difference.
 
 ```{r Load packages for fitting a model, echo=TRUE, message=FALSE}
 # Basic packages for use
@@ -55,10 +76,7 @@ library(glmnet)
 library(terra)
 ```
 
-Now we use the **ibis.iSDM** package to train a simple SDM and apply the InSiGHTS on it. The assumption here is that the SDMs
-are created using climatic variables (temperature, precipitation, etc.) only so as to create a climatic envelope model. The refinement with
-time series of land-use is done posthoc on the resulting prediction.
-Note that this also works on any other range estimate provided directly as a SpatRaster.
+The workflow below uses **ibis.iSDM** to train a simple SDM and then applies InSiGHTS to it. SDMs are built from climatic variables (temperature, precipitation, etc.) to produce a climatic envelope model; land-use refinement is applied post-hoc. The same workflow accepts any binary `SpatRaster` range estimate in place of the SDM output.
 
 ```{r Train a simple SDM, echo=TRUE, message=FALSE}
 # Load test data from ibis.iSDM package
@@ -135,7 +153,7 @@ out <- insights_fraction(range = sc,
 o <- insights_summary(out)
 
 plot(o$suitability~o$band, type = "b",
-     main = "InSiGHTS index",
+     main = "Insights index",
      ylab = "Suitable habitat relative to 2015",
      xlab = "Year")
 
@@ -154,4 +172,4 @@ C. Rondinini and P. Visconti, _Scenarios of large mammal loss in Europe for the 
 
 ## Acknowledgement <a href="https://iiasa.ac.at"><img src="man/figures/IIASA_PNG_logo_blue.png" alt="IIASA" align="right" width="300"/></a>
 
-**InSiGHTS** is developed and maintained by the [Biodiversity, Ecology and Conservation group](https://iiasa.ac.at/programs/bnr/bec) at the International Institute for Applied Systems Analysis (IIASA), Austria.
+**ibis.insights** is developed and maintained by the [Biodiversity, Ecology and Conservation group](https://iiasa.ac.at/programs/bnr/bec) at the International Institute for Applied Systems Analysis (IIASA), Austria.

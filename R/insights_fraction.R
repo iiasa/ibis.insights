@@ -1,35 +1,63 @@
-#' Apply InSiGHTS with fractional land use data
+#' Apply InSiGHTS with fractional land-use data
 #'
 #' @description
-#' This function applies an area-of-habitat (AOH) correction to a provided single time step or multiple step range estimate
-#' (binary format). This thus assumes that species-habitat relations remain stable also in future conditions within a
-#' provided climatic niche.
+#' Apply an area-of-habitat (AOH) refinement to a binary or fractional range
+#' estimate using land-use or habitat layers expressed as fractions. Use this
+#' method when the land-use values represent cell shares or suitability weights
+#' in the interval \code{[0, 1]}. For land-use inputs already expressed as area
+#' per cell, use [`insights_area()`] instead.
 #'
-#' It is assumed that the land-use layers come in fractional units, so are ranging from \code{0} to \code{1}.
-#' Optionally also a elevation (\code{elev}) layer and habitat condition (\code{condition}) can be provided to support refinements
-#' by elevational range or habitat condition.
+#' If \code{lu} has multiple layers or attributes, they are summed before being
+#' applied to the range. This is useful when several land-use classes jointly
+#' represent suitable habitat. Optional \code{other} layers can be supplied as
+#' additional suitability or condition masks, but they must already be scaled to
+#' \code{[0, 1]}; raw environmental layers such as elevation should be converted
+#' to a suitability mask before calling this function.
+#'
+#' Raster inputs are reprojected, cropped, and resampled to the range geometry
+#' when needed. Temporal [`stars`] inputs may use a \code{time} or \code{Time}
+#' dimension name. If \code{outfile} is supplied, the extension is adjusted to
+#' \code{.tif} for raster output or \code{.nc} for [`stars`] output.
 #'
 #' @note
-#' This function does not do the refinement of land-use fraction to relevant habitats.
-#' This needs to be done by the analyst a-priori.
+#' This function does not infer species-habitat relationships from raw land-use
+#' classes. Select, weight, or transform land-use and condition layers before
+#' calling \code{insights_fraction()}.
 #' @param range A [`SpatRaster`] or temporal [`stars`] object describing the estimated distribution of a
-#' biodiversity feature (e.g. species). **Has to be in binary format!**
+#' biodiversity feature (e.g. species). Values must be binary or fractional in \code{[0, 1]}.
 #' Alternatively a \code{DistributionModel} fitted with \code{ibis.iSDM} package can be supplied.
 #' @param lu A [`SpatRaster`] or temporal [`stars`] object of the future land-use fractions to be applied to the range.
-#' **Each layer has to be in units of fractions, e.g. between 0 and 1.**
-#' @param other Any other [`SpatRaster`] or temporal [`stars`] objects that describe suitable conditions for the species.
+#' **Each layer has to be in fractional units between 0 and 1.** Multi-layer inputs are summed.
+#' @param other Optional [`SpatRaster`] or temporal [`stars`] object describing additional suitable conditions for the species.
+#' Values must already be suitability weights in \code{[0, 1]}.
 #' @param outfile A writeable [`character`] of where the output should be written to. If missing, the function will return
-#' a [`SpatRaster`] or [`stars`] object respectively.
-#' @param clamp A [`logical`] on whether lu should be clamped to 0 and 1 beforehand (Default: \code{FALSE}).
+#' a [`SpatRaster`] or [`stars`] object respectively. Missing \code{.tif} or \code{.nc} extensions are added as needed.
+#' @param clamp A [`logical`] on whether \code{lu} and summed fractional suitability should be clamped to 0 and 1 beforehand (Default: \code{FALSE}).
 #'
 #' @returns Either a [`SpatRaster`] or temporal [`stars`] object or nothing if outputs are written directly to drive.
 #' @author Martin Jung
 #' @importClassesFrom terra SpatRaster
 #' @importFrom ibis.iSDM is.Raster
 #' @examples
-#' \dontrun{
-#'  out <- insights_fraction(range, landuse)
-#' }
+#' require(terra)
+#' # Load package example rasters
+#' range <- terra::rast(system.file(
+#'   "extdata/example_range.tif", package = "insights", mustWork = TRUE
+#' ))
+#' lu <- c(
+#'   terra::rast(system.file(
+#'     "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+#'   )),
+#'   terra::rast(system.file(
+#'     "extdata/Sparsely.vegetated.areas.tif", package = "insights", mustWork = TRUE
+#'   ))
+#' )
+#'
+#' # Convert example land-use layers to fractions between 0 and 1.
+#' lu <- lu / 10000
+#'
+#' out <- insights_fraction(range = range, lu = lu, clamp = TRUE)
+#' head(insights_summary(out))
 #'
 #' @references
 #' * Rondinini, Carlo, and Piero Visconti. "Scenarios of large mammal loss in Europe for the 21st century." Conservation Biology 29, no. 4 (2015): 1028-1036.
@@ -49,7 +77,7 @@ methods::setGeneric(
 
 #' @name insights_fraction
 #' @rdname insights_fraction
-#' @usage \S4method{insights_fraction}{SpatRaster,SpatRaster,SpatRaster,character,logical}(range,lu,other,outfile,clamp)
+#' @usage \S4method{insights_fraction}{SpatRaster,SpatRaster,ANY,character,logical}(range,lu,other,outfile,clamp)
 methods::setMethod(
   "insights_fraction",
   methods::signature(range = "SpatRaster", lu = "SpatRaster"),
@@ -57,7 +85,7 @@ methods::setMethod(
     assertthat::assert_that(
       ibis.iSDM::is.Raster(range),
       ibis.iSDM::is.Raster(lu),
-      missing(other) || ibis.iSDM::is.Raster(other),
+      missing(other) || ibis.iSDM::is.Raster(other) || inherits(other, "stars"),
       is.null(outfile) || is.character(outfile),
       is.logical(clamp)
     )
@@ -106,8 +134,11 @@ methods::setMethod(
 
     # Align others if set
     if(!missing(other)){
+      if(inherits(other, "stars")) {
+        other <- terra::rast(other)
+      }
       assertthat::assert_that(ibis.iSDM::is.Raster(other),
-                              msg = "other provided layers need to be in SpatRaster format.")
+                              msg = "other provided layers need to be SpatRaster or stars objects.")
       rr <- terra::global(other,"range",na.rm=TRUE)
       assertthat::assert_that(all(rr[["min"]]>=0 ),
                               all(rr[["max"]]<=1 ),
@@ -149,6 +180,7 @@ methods::setMethod(
     out <- range
     # Now sum land use shares
     lus <- terra::app(lu, 'sum', na.rm = TRUE)
+    if(clamp) lus <- st_clamp(lus, lb = 0, ub = 1)
     out <- out * lus
     if(!missing(other)) out <- out * other
     if(terra::nlyr(range)>1){
@@ -211,7 +243,8 @@ methods::setMethod(
                             any(c("Time","time") %in% names(stars::st_dimensions(lu))),
                             msg = "No dimension with name \"time\" found in land-use time series!")
     dims <- stars::st_dimensions(lu)
-    names(dims)[3] <- "time"
+    time_dim <- match(TRUE, names(dims) %in% c("time", "Time"))
+    names(dims)[time_dim] <- "time"
     stars::st_dimensions(lu) <- dims
     times <- stars::st_get_dimension_values(lu, "time")
 
@@ -287,18 +320,43 @@ methods::setMethod(
       msg = "More than one layer in range found...?"
     )
 
+    range_dims <- stars::st_dimensions(range)
+    if(any(c("time", "Time") %in% names(range_dims))) {
+      range_time_dim <- match(TRUE, names(range_dims) %in% c("time", "Time"))
+      names(range_dims)[range_time_dim] <- "time"
+      stars::st_dimensions(range) <- range_dims
+    }
+
     # Convert if needed
     if(!missing(other)){
       # In this case we recreate / warp the raster to dem
       other <- stars::st_as_stars(other)
       names(other) <- "other"
+      other_dims <- stars::st_dimensions(other)
+      other_has_time <- any(c("time", "Time") %in% names(other_dims))
+      if(other_has_time) {
+        other_time_dim <- match(TRUE, names(other_dims) %in% c("time", "Time"))
+        names(other_dims)[other_time_dim] <- "time"
+        stars::st_dimensions(other) <- other_dims
+      }
       # Reproejct and rewarp
       other <- other |> sf::st_transform(crs = sf::st_crs(range))
 
       ibis.iSDM:::myLog("[Reprojection]", "yellow", "Aligning other layers to range.")
-      grid <- other |> sf::st_bbox() |> stars::st_as_stars()
+      range_grid <- range
+      if(!other_has_time && "time" %in% names(stars::st_dimensions(range_grid))) {
+        range_grid <- range_grid |> stars:::slice.stars("time", 1)
+      }
       other <- other |>
-        stars::st_warp(grid, cellsize = stars::st_res(range),use_gdal = FALSE)
+        stars::st_warp(range_grid, cellsize = stars::st_res(range_grid), use_gdal = FALSE)
+      if(length(other)>1){
+        other <- ibis.iSDM:::st_reduce(other, names(other), newname = "other", fun = "sum")
+      }
+      assertthat::assert_that(
+        min(other[[1]], na.rm = TRUE) >= 0,
+        max(other[[1]], na.rm = TRUE) <= 1,
+        msg = "Supply other layers with values between 0 and 1!"
+      )
     }
 
     # Correct output file extension if necessary
@@ -325,7 +383,8 @@ methods::setMethod(
                             any(c("time", "Time") %in% names(stars::st_dimensions(lu))),
                             msg = "No dimension with name \"time\" found in land-use time series!")
     dims <- stars::st_dimensions(lu)
-    names(dims)[3] <- "time"
+    time_dim <- match(TRUE, names(dims) %in% c("time", "Time"))
+    names(dims)[time_dim] <- "time"
     stars::st_dimensions(lu) <- dims
     times <- stars::st_get_dimension_values(lu, "time")
     # Check that time steps are identical to range
@@ -338,7 +397,7 @@ methods::setMethod(
     # --- #
     # Check that both sets of layers are comparable
     # If x or y differ, rewarp
-    if(all( range(stars::st_get_dimension_values(lu, 1)) != range(stars::st_get_dimension_values(range, 1)) )){
+    if(all( base::range(stars::st_get_dimension_values(lu, 1)) != base::range(stars::st_get_dimension_values(range, 1)) )){
       lu <- stars::st_warp(lu, range,
                            cellsize = stars::st_res(range),
                            use_gdal = FALSE,
@@ -350,6 +409,7 @@ methods::setMethod(
 
     # Multiply both fractional layers
     proj <- range * lu
+    if(!missing(other)) proj <- proj * other
     names(proj) <- "insights_suitability"
     assertthat::assert_that(length(proj)==1)
 
@@ -383,18 +443,36 @@ methods::setMethod(
       msg = "More than one layer in range found...?"
     )
 
+    range_dims <- stars::st_dimensions(range)
+    if(any(c("time", "Time") %in% names(range_dims))) {
+      range_time_dim <- match(TRUE, names(range_dims) %in% c("time", "Time"))
+      names(range_dims)[range_time_dim] <- "time"
+      stars::st_dimensions(range) <- range_dims
+    }
+
     # Convert if needed
     if(!missing(other)){
       # In this case we recreate / warp the raster to dem
       other <- stars::st_as_stars(other)
       names(other) <- "other"
+      other_dims <- stars::st_dimensions(other)
+      other_has_time <- any(c("time", "Time") %in% names(other_dims))
+      if(other_has_time) {
+        other_time_dim <- match(TRUE, names(other_dims) %in% c("time", "Time"))
+        names(other_dims)[other_time_dim] <- "time"
+        stars::st_dimensions(other) <- other_dims
+      }
       # Reproject and rewarp
       other <- other |> sf::st_transform(crs = sf::st_crs(range))
 
       ibis.iSDM:::myLog("[Reprojection]", "yellow", "Aligning other layers to range.")
-      grid <- other |> sf::st_bbox() |> stars::st_as_stars()
+      range_grid <- range
+      if(!other_has_time && "time" %in% names(stars::st_dimensions(range_grid))) {
+        range_grid <- range_grid |> stars:::slice.stars("time", 1)
+      }
       other <- other |>
-        stars::st_warp(grid, cellsize = stars::st_res(range),use_gdal = FALSE)
+        stars::st_warp(range_grid, cellsize = stars::st_res(range_grid), use_gdal = FALSE)
+      other <- terra::rast(other)
     }
 
     # Correct output file extension if necessary
@@ -417,7 +495,7 @@ methods::setMethod(
     if(clamp) lu <- st_clamp(lu, lb = 0, ub = 1)
 
     # Get dimensions from range
-    times <- stars::st_get_dimension_values(range, 3)
+    times <- stars::st_get_dimension_values(range, "time")
     assertthat::assert_that(
       is.numeric(times) || lubridate::is.Date(times) || lubridate::is.POSIXct(times)
     )
@@ -452,7 +530,7 @@ methods::setMethod(
     # Reset time dimension for consistency
     dims <- stars::st_dimensions(proj)
     names(dims)[3] <- "time"
-    dims$time <- stars::st_dimensions(range)[[3]]
+    dims$time <- stars::st_dimensions(range)[["time"]]
     stars::st_dimensions(proj) <- dims
 
     # Return result or write respectively
@@ -468,7 +546,7 @@ methods::setMethod(
 #### Implementation for ibis.iSDM predictions and projections ####
 #' @name insights_fraction
 #' @rdname insights_fraction
-#' @usage \S4method{insights_fraction}{ANY,ANY,SpatRaster,character,logical}(range,lu,other,outfile,clamp)
+#' @usage \S4method{insights_fraction}{ANY,ANY,ANY,character,logical}(range,lu,other,outfile,clamp)
 methods::setMethod(
   "insights_fraction",
   methods::signature(range = "ANY", lu = "ANY"),
@@ -476,7 +554,7 @@ methods::setMethod(
     assertthat::assert_that(
       inherits(range, "DistributionModel") || inherits(range, "BiodiversityScenario"),
       inherits(lu, "stars") || ibis.iSDM::is.Raster(lu),
-      missing(other) || ibis.iSDM::is.Raster(other),
+      missing(other) || ibis.iSDM::is.Raster(other) || inherits(other, "stars"),
       is.null(outfile) || is.character(outfile),
       is.logical(clamp)
     )
@@ -541,7 +619,8 @@ methods::setMethod(
       out <- insights_fraction(range = data,
                                lu = lu,
                                other = other,
-                               outfile = outfile
+                               outfile = outfile,
+                               clamp = clamp
                                )
       return(out)
     }

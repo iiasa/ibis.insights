@@ -2,11 +2,11 @@
 % Please edit documentation in R/insights_fraction.R
 \name{insights_fraction}
 \alias{insights_fraction}
-\title{Apply InSiGHTS with fractional land use data}
+\title{Apply InSiGHTS with fractional land-use data}
 \usage{
 insights_fraction(range, lu, other, outfile = NULL, clamp = FALSE)
 
-\S4method{insights_fraction}{SpatRaster,SpatRaster,SpatRaster,character,logical}(range,lu,other,outfile,clamp)
+\S4method{insights_fraction}{SpatRaster,SpatRaster,ANY,character,logical}(range,lu,other,outfile,clamp)
 
 \S4method{insights_fraction}{SpatRaster,stars,ANY,character,logical}(range,lu,other,outfile,clamp)
 
@@ -14,43 +14,71 @@ insights_fraction(range, lu, other, outfile = NULL, clamp = FALSE)
 
 \S4method{insights_fraction}{stars,SpatRaster,ANY,character,logical}(range,lu,other,outfile,clamp)
 
-\S4method{insights_fraction}{ANY,ANY,SpatRaster,character,logical}(range,lu,other,outfile,clamp)
+\S4method{insights_fraction}{ANY,ANY,ANY,character,logical}(range,lu,other,outfile,clamp)
 }
 \arguments{
-\item{range}{A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object describing the estimated distribution of a
-biodiversity feature (e.g. species). \strong{Has to be in binary format!}
+\item{range}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object describing the estimated distribution of a
+biodiversity feature (e.g. species). Values must be binary or fractional in \code{[0, 1]}.
 Alternatively a \code{DistributionModel} fitted with \code{ibis.iSDM} package can be supplied.}
 
-\item{lu}{A \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object of the future land-use fractions to be applied to the range.
-\strong{Each layer has to be in units of fractions, e.g. between 0 and 1.}}
+\item{lu}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object of the future land-use fractions to be applied to the range.
+\strong{Each layer has to be in fractional units between 0 and 1.} Multi-layer inputs are summed.}
 
-\item{other}{Any other \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} objects that describe suitable conditions for the species.}
+\item{other}{Optional \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object describing additional suitable conditions for the species.
+Values must already be suitability weights in \code{[0, 1]}.}
 
 \item{outfile}{A writeable \code{\link{character}} of where the output should be written to. If missing, the function will return
-a \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or \code{\link{stars}} object respectively.}
+a \code{\link[terra:SpatRaster]{SpatRaster}} or \code{\link{stars}} object respectively. Missing \code{.tif} or \code{.nc} extensions are added as needed.}
 
-\item{clamp}{A \code{\link{logical}} on whether lu should be clamped to 0 and 1 beforehand (Default: \code{FALSE}).}
+\item{clamp}{A \code{\link{logical}} on whether \code{lu} and summed fractional suitability should be clamped to 0 and 1 beforehand (Default: \code{FALSE}).}
 }
 \value{
-Either a \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} or temporal \code{\link{stars}} object or nothing if outputs are written directly to drive.
+Either a \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object or nothing if outputs are written directly to drive.
 }
 \description{
-This function applies an area-of-habitat (AOH) correction to a provided single time step or multiple step range estimate
-(binary format). This thus assumes that species-habitat relations remain stable also in future conditions within a
-provided climatic niche.
+Apply an area-of-habitat (AOH) refinement to a binary or fractional range
+estimate using land-use or habitat layers expressed as fractions. Use this
+method when the land-use values represent cell shares or suitability weights
+in the interval \code{[0, 1]}. For land-use inputs already expressed as area
+per cell, use \code{\link[=insights_area]{insights_area()}} instead.
 
-It is assumed that the land-use layers come in fractional units, so are ranging from \code{0} to \code{1}.
-Optionally also a elevation (\code{elev}) layer and habitat condition (\code{condition}) can be provided to support refinements
-by elevational range or habitat condition.
+If \code{lu} has multiple layers or attributes, they are summed before being
+applied to the range. This is useful when several land-use classes jointly
+represent suitable habitat. Optional \code{other} layers can be supplied as
+additional suitability or condition masks, but they must already be scaled to
+\code{[0, 1]}; raw environmental layers such as elevation should be converted
+to a suitability mask before calling this function.
+
+Raster inputs are reprojected, cropped, and resampled to the range geometry
+when needed. Temporal \code{\link{stars}} inputs may use a \code{time} or \code{Time}
+dimension name. If \code{outfile} is supplied, the extension is adjusted to
+\code{.tif} for raster output or \code{.nc} for \code{\link{stars}} output.
 }
 \note{
-This function does not do the refinement of land-use fraction to relevant habitats.
-This needs to be done by the analyst a-priori.
+This function does not infer species-habitat relationships from raw land-use
+classes. Select, weight, or transform land-use and condition layers before
+calling \code{insights_fraction()}.
 }
 \examples{
-\dontrun{
- out <- insights_fraction(range, landuse)
-}
+require(terra)
+# Load package example rasters
+range <- terra::rast(system.file(
+  "extdata/example_range.tif", package = "insights", mustWork = TRUE
+))
+lu <- c(
+  terra::rast(system.file(
+    "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+  )),
+  terra::rast(system.file(
+    "extdata/Sparsely.vegetated.areas.tif", package = "insights", mustWork = TRUE
+  ))
+)
+
+# Convert example land-use layers to fractions between 0 and 1.
+lu <- lu / 10000
+
+out <- insights_fraction(range = range, lu = lu, clamp = TRUE)
+head(insights_summary(out))
 
 }
 \references{

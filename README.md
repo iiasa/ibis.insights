@@ -1,11 +1,11 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Implementation of the InSiGHTS framework
+# insights: InSiGHTS Index of Habitat Availability
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/iiasa/insights/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: CC BY
@@ -13,19 +13,20 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 [![Codecov
 Status](https://codecov.io/gh/iiasa/ibis.insights/branch/main/graph/badge.svg)](https://app.codecov.io/gh/iiasa/ibis.insights?branch=main)<!-- badges: end -->
 
-This R-package provides a IIASA implementation of the InSiGHTS Index of
-Habitat Availability. The index captures the amount of suitable habitat
-within the current or a future range of a species. This range can be
-taken either from existing range maps (e.g. IUCN) or from estimates
-obtained through species distribution models.
+The **ibis.insights** package implements the InSiGHTS (Index of Habitat
+Availability) framework for quantifying how climate change and land-use
+change affect the available habitat of a species over time. The index
+captures the extent of suitable habitat within the current or projected
+range of a species, with ranges sourced from existing maps (e.g. IUCN)
+or from species distribution models (SDMs).
 
-<img src="man/figures/insights_schematic.png" alt="Schematic" align="right" width="300"/>
+<img src="man/figures/ibis.insights_schematic.png" alt="Schematic" align="right" width="300"/>
 
-In it’s basic configuration, the InSiGHTS framework combines the
-climatic suitability from a SDM with a area of habitat (AOH) refinement
-to obtain the suitable habitat for each time steps. The InSiGHTS Index
-of Habitat Availability can then be defined for any given species $s$
-and timestep $t$ as:
+In its basic configuration, the InSiGHTS framework combines climatic
+suitability from an SDM with an area-of-habitat (AOH) refinement to
+derive suitable habitat for each time step. The InSiGHTS Index of
+Habitat Availability is defined for a given species $s$ and time step
+$t$ as:
 
 $Insights_{s,t} = \frac{AOH_{s,t} - AOH_{s, t_{ref}}}{AOH_{s, t_{ref}}}$,
 where $t_{ref}$ indicates a reference or starting year.
@@ -38,43 +39,62 @@ al. (2021)](https://doi.org/10.1016/j.oneear.2020.05.015).
 
 The package is part of the
 [IIASA-BEC](https://iiasa.ac.at/programs/bnr/bec) suite of biodiversity
-indicators and is coupled with the
+indicators and integrates tightly with the
 [ibis.iSDM](https://iiasa.github.io/ibis.iSDM/) species distribution
-model.
+modelling package, though any `SpatRaster` or `stars` range object can
+be used as input.
 
 ## Installation
 
-You can install the development version of Insights from
-[GitHub](https://github.com/) with:
+You can install the development version of **ibis.insights** from
+[GitHub](https://github.com/iiasa/ibis.insights) with:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("iiasa/ibis.insights")
 ```
 
-The package depends on the
-[ibis.iSDM](https://iiasa.github.io/ibis.iSDM/) package, which is
-currently only available via github.
+The package depends on [ibis.iSDM](https://iiasa.github.io/ibis.iSDM/),
+which is also only available from GitHub:
+
+``` r
+devtools::install_github("iiasa/ibis.iSDM")
+```
 
 ## Basic usage and examples
+
+### Which method should I use?
+
+Use `insights_fraction()` when habitat or land-use layers are fractions
+or suitability weights in `[0, 1]`. Multiple land-use layers are summed,
+so pass only the classes that are relevant for the species and use
+`clamp = TRUE` if the combined suitability should be capped at one.
+
+Use `insights_area()` when land-use layers are already expressed as area
+per cell, for example `km2`. The output is then already in area units,
+so summarize it with `insights_summary(..., toArea = FALSE)` to avoid
+multiplying by cell area again.
+
+Use `insights_discount()` before either method when a habitat class
+should be weighted by an age or maturity layer. Use `insights_summary()`
+after either workflow to obtain absolute totals, standard relative
+change, or the bounded symmetric relative difference.
 
 ``` r
 # Basic packages for use
 library(ibis.iSDM)
 library(insights)
 library(glmnet)
+#> Warning: package 'glmnet' was built under R version 4.5.3
 #> Warning: package 'Matrix' was built under R version 4.5.3
 library(terra)
-#> Warning: package 'terra' was built under R version 4.5.3
 ```
 
-Now we use the **ibis.iSDM** package to train a simple SDM and apply the
-InSiGHTS on it. The assumption here is that the SDMs are created using
-climatic variables (temperature, precipitation, etc.) only so as to
-create a climatic envelope model. The refinement with time series of
-land-use is done posthoc on the resulting prediction. Note that this
-also works on any other range estimate provided directly as a
-SpatRaster.
+The workflow below uses **ibis.iSDM** to train a simple SDM and then
+applies InSiGHTS to it. SDMs are built from climatic variables
+(temperature, precipitation, etc.) to produce a climatic envelope model;
+land-use refinement is applied post-hoc. The same workflow accepts any
+binary `SpatRaster` range estimate in place of the SDM output.
 
 ``` r
 # Load test data from ibis.iSDM package
@@ -129,7 +149,7 @@ plot(out, col = c("grey90", "#FDE8A9", "#FBD35C", "#D1C34A", "#8EB65C",
 # Summarize
 insights_summary(out)
 #>   time suitability unit
-#> 1   NA    257678.9  km2
+#> 1   NA      260933  km2
 ```
 
 Of course it is also possible to directly supply a multi-dimensional
@@ -144,26 +164,26 @@ sc <- scenario(fit) |>
   threshold() |>
   project()
 #> ! State variable of transformation not found?
-#> [32m[Scenario] 2026-04-11 23:11:28.85695 | Adding scenario predictors...[39m
-#> [32m[Setup] 2026-04-11 23:11:28.857741 | Transforming predictors...[39m
-#> [32m[Scenario] 2026-04-11 23:11:29.563382 | Starting suitability projections for 9 timesteps from 2015-01-01 <> 2095-01-01[39m
+#> [32m[Scenario] 2026-06-05 17:04:49.856774 | Adding scenario predictors...[39m
+#> [32m[Setup] 2026-06-05 17:04:49.857969 | Transforming predictors...[39m
+#> [32m[Scenario] 2026-06-05 17:04:50.488875 | Starting suitability projections for 9 timesteps from 2015-01-01 <> 2095-01-01[39m
 
 # --- #
 # Now apply insights using time series of future land use
 lu <- pred_future |> stars:::select.stars(primn, secdf)
 # Normalize for the sake of an example. Note that fractions are needed!
 lu <- ibis.iSDM::predictor_transform(lu, "norm") |> round(2) 
-#> [31m[Setup] 2026-04-11 23:11:30.483115 | When transforming future variables, ensure that unit ranges are comparable (parameter state)![39m
+#> [31m[Setup] 2026-06-05 17:04:51.490328 | When transforming future variables, ensure that unit ranges are comparable (parameter state)![39m
 out <- insights_fraction(range = sc,
                          lu = lu)
 
 # Summarize
 o <- insights_summary(out)
-#> Warning: package 'sf' was built under R version 4.5.2
-#> Linking to GEOS 3.13.1, GDAL 3.11.4, PROJ 9.7.0; sf_use_s2() is FALSE
+#> Warning: package 'sf' was built under R version 4.5.3
+#> Linking to GEOS 3.14.1, GDAL 3.12.1, PROJ 9.7.1; sf_use_s2() is FALSE
 
 plot(o$suitability~o$band, type = "b",
-     main = "InSiGHTS index",
+     main = "Insights index",
      ylab = "Suitable habitat relative to 2015",
      xlab = "Year")
 ```
@@ -187,6 +207,7 @@ for the 21st century* Conserv. Biol., 29 (2015), pp. 1028-1036
 
 ## Acknowledgement <a href="https://iiasa.ac.at"><img src="man/figures/IIASA_PNG_logo_blue.png" alt="IIASA" align="right" width="300"/></a>
 
-**InSiGHTS** is developed and maintained by the [Biodiversity, Ecology
-and Conservation group](https://iiasa.ac.at/programs/bnr/bec) at the
-International Institute for Applied Systems Analysis (IIASA), Austria.
+**ibis.insights** is developed and maintained by the [Biodiversity,
+Ecology and Conservation group](https://iiasa.ac.at/programs/bnr/bec) at
+the International Institute for Applied Systems Analysis (IIASA),
+Austria.
