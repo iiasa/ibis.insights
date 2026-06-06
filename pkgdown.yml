@@ -1,0 +1,10 @@
+pandoc: 3.8.3
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  general-helper-functions: general-helper-functions.html
+  insights-functions: insights-functions.html
+last_built: 2026-06-06T21:53Z
+urls:
+  reference: https://iiasa.github.io/ibis.insights/reference
+  article: https://iiasa.github.io/ibis.insights/articles
