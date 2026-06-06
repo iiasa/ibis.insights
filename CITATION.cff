@@ -2,7 +2,7 @@
 # CITATION file created with {cffr} R package
 # See also: https://docs.ropensci.org/cffr/
 # --------------------------------------------
- 
+
 cff-version: 1.2.0
 message: 'To cite package "ibis.insights" in publications use:'
 type: software
@@ -32,7 +32,6 @@ contact:
   given-names: Martin
   email: jung@iiasa.ac.at
   orcid: https://orcid.org/0000-0002-7569-1390
-<<<<<<< HEAD
 =======
 keywords:
 - area-of-habitat
@@ -41,5 +40,3 @@ keywords:
 - iucn
 - land-use
 - range
-
->>>>>>> 1a1f35070d770535c82046328be6cc32bbff1346
