@@ -2,12 +2,12 @@
 # CITATION file created with {cffr} R package
 # See also: https://docs.ropensci.org/cffr/
 # --------------------------------------------
-
+ 
 cff-version: 1.2.0
 message: 'To cite package "ibis.insights" in publications use:'
 type: software
 license: CC-BY-4.0
-title: 'ibis.insights: An R implementation of the InSiGHTS framework'
+title: 'ibis.insights: An R Implementation of the InSiGHTS Framework'
 version: '0.8'
 abstract: Implements the InSiGHTS (Index of Habitat Availability) modelling framework
   for assessing how climate change and land-use change affect the availability of
@@ -25,14 +25,13 @@ authors:
   given-names: Martin
   email: jung@iiasa.ac.at
   orcid: https://orcid.org/0000-0002-7569-1390
-repository-code: https://github.com/iiasa/insights
-url: https://iiasa.github.io/insights/
+repository-code: https://github.com/iiasa/ibis.insights
+url: https://iiasa.github.io/ibis.insights/
 contact:
 - family-names: Jung
   given-names: Martin
   email: jung@iiasa.ac.at
   orcid: https://orcid.org/0000-0002-7569-1390
-=======
 keywords:
 - area-of-habitat
 - biodiversity
@@ -40,3 +39,4 @@ keywords:
 - iucn
 - land-use
 - range
+
