@@ -42,14 +42,14 @@
 #' require(terra)
 #' # Load package example rasters
 #' range <- terra::rast(system.file(
-#'   "extdata/example_range.tif", package = "insights", mustWork = TRUE
+#'   "extdata/example_range.tif", package = "ibis.insights", mustWork = TRUE
 #' ))
 #' lu <- c(
 #'   terra::rast(system.file(
-#'     "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+#'     "extdata/Grassland.tif", package = "ibis.insights", mustWork = TRUE
 #'   )),
 #'   terra::rast(system.file(
-#'     "extdata/Sparsely.vegetated.areas.tif", package = "insights", mustWork = TRUE
+#'     "extdata/Sparsely.vegetated.areas.tif", package = "ibis.insights", mustWork = TRUE
 #'   ))
 #' )
 #'
@@ -77,7 +77,8 @@ methods::setGeneric(
 
 #' @name insights_fraction
 #' @rdname insights_fraction
-#' @usage \S4method{insights_fraction}{SpatRaster,SpatRaster,ANY,character,logical}(range,lu,other,outfile,clamp)
+#' @aliases insights_fraction,SpatRaster,SpatRaster-method
+#' @usage \S4method{insights_fraction}{SpatRaster,SpatRaster}(range,lu,other,outfile,clamp)
 methods::setMethod(
   "insights_fraction",
   methods::signature(range = "SpatRaster", lu = "SpatRaster"),
@@ -207,7 +208,8 @@ methods::setMethod(
 
 #' @name insights_fraction
 #' @rdname insights_fraction
-#' @usage \S4method{insights_fraction}{SpatRaster,stars,ANY,character,logical}(range,lu,other,outfile,clamp)
+#' @aliases insights_fraction,SpatRaster,stars-method
+#' @usage \S4method{insights_fraction}{SpatRaster,stars}(range,lu,other,outfile,clamp)
 methods::setMethod(
   "insights_fraction",
   methods::signature(range = "SpatRaster", lu = "stars"),
@@ -301,7 +303,8 @@ methods::setMethod(
 
 #' @name insights_fraction
 #' @rdname insights_fraction
-#' @usage \S4method{insights_fraction}{stars,stars,ANY,character,logical}(range,lu,other,outfile,clamp)
+#' @aliases insights_fraction,stars,stars-method
+#' @usage \S4method{insights_fraction}{stars,stars}(range,lu,other,outfile,clamp)
 methods::setMethod(
   "insights_fraction",
   methods::signature(range = "stars", lu = "stars"),
@@ -347,6 +350,7 @@ methods::setMethod(
       if(!other_has_time && "time" %in% names(stars::st_dimensions(range_grid))) {
         range_grid <- range_grid |> stars:::slice.stars("time", 1)
       }
+      assert_fnn_available()
       other <- other |>
         stars::st_warp(range_grid, cellsize = stars::st_res(range_grid), use_gdal = FALSE)
       if(length(other)>1){
@@ -398,6 +402,7 @@ methods::setMethod(
     # Check that both sets of layers are comparable
     # If x or y differ, rewarp
     if(all( base::range(stars::st_get_dimension_values(lu, 1)) != base::range(stars::st_get_dimension_values(range, 1)) )){
+      assert_fnn_available()
       lu <- stars::st_warp(lu, range,
                            cellsize = stars::st_res(range),
                            use_gdal = FALSE,
@@ -424,7 +429,8 @@ methods::setMethod(
 
 #' @name insights_fraction
 #' @rdname insights_fraction
-#' @usage \S4method{insights_fraction}{stars,SpatRaster,ANY,character,logical}(range,lu,other,outfile,clamp)
+#' @aliases insights_fraction,stars,SpatRaster-method
+#' @usage \S4method{insights_fraction}{stars,SpatRaster}(range,lu,other,outfile,clamp)
 methods::setMethod(
   "insights_fraction",
   methods::signature(range = "stars", lu = "SpatRaster"),
@@ -470,6 +476,7 @@ methods::setMethod(
       if(!other_has_time && "time" %in% names(stars::st_dimensions(range_grid))) {
         range_grid <- range_grid |> stars:::slice.stars("time", 1)
       }
+      assert_fnn_available()
       other <- other |>
         stars::st_warp(range_grid, cellsize = stars::st_res(range_grid), use_gdal = FALSE)
       other <- terra::rast(other)
@@ -546,7 +553,8 @@ methods::setMethod(
 #### Implementation for ibis.iSDM predictions and projections ####
 #' @name insights_fraction
 #' @rdname insights_fraction
-#' @usage \S4method{insights_fraction}{ANY,ANY,ANY,character,logical}(range,lu,other,outfile,clamp)
+#' @aliases insights_fraction,ANY,ANY-method
+#' @usage \S4method{insights_fraction}{ANY,ANY}(range,lu,other,outfile,clamp)
 methods::setMethod(
   "insights_fraction",
   methods::signature(range = "ANY", lu = "ANY"),
@@ -594,7 +602,7 @@ methods::setMethod(
           threshold <- threshold[[grep("mean", names(threshold),value = TRUE )]]
         }
 
-        # Now call again insights
+        # Now call the InSiGHTS workflow again
         out <- insights_fraction(range = threshold,
                                  lu = lu,
                                  other = other,

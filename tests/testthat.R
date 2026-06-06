@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(insights)
+library(ibis.insights)
 
-test_check("insights")
+test_check("ibis.insights")

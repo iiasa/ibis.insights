@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# insights: InSiGHTS Index of Habitat Availability
+# ibis.insights: InSiGHTS Index of Habitat Availability
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml)
@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 
 The **ibis.insights** package implements the InSiGHTS (Index of Habitat Availability) framework for quantifying how climate change and land-use change affect the available habitat of a species over time. The index captures the extent of suitable habitat within the current or projected range of a species, with ranges sourced from existing maps (e.g. IUCN) or from species distribution models (SDMs).
 
-<img src="man/figures/ibis.insights_schematic.png" alt="Schematic" align="right" width="300"/>
+<img src="man/figures/insights_schematic.png" alt="Schematic" align="right" width="300"/>
 
 In its basic configuration, the InSiGHTS framework combines climatic suitability from an SDM with an area-of-habitat (AOH) refinement to derive suitable habitat for each time step.
 The InSiGHTS Index of Habitat Availability is defined for a given species $s$ and time step $t$ as:
@@ -71,14 +71,14 @@ symmetric relative difference.
 ```{r Load packages for fitting a model, echo=TRUE, message=FALSE}
 # Basic packages for use
 library(ibis.iSDM)
-library(insights)
+library(ibis.insights)
 library(glmnet)
 library(terra)
 ```
 
 The workflow below uses **ibis.iSDM** to train a simple SDM and then applies InSiGHTS to it. SDMs are built from climatic variables (temperature, precipitation, etc.) to produce a climatic envelope model; land-use refinement is applied post-hoc. The same workflow accepts any binary `SpatRaster` range estimate in place of the SDM output.
 
-```{r Train a simple SDM, echo=TRUE, message=FALSE}
+```{r train-simple-sdm, echo=TRUE, message=FALSE}
 # Load test data from ibis.iSDM package
 background <- terra::rast(system.file('extdata/europegrid_50km.tif', package='ibis.iSDM',mustWork = TRUE))
 virtual_points <- sf::st_read(system.file('extdata/input_data.gpkg', package='ibis.iSDM',mustWork = TRUE),'points',quiet = TRUE)
@@ -112,8 +112,8 @@ fit <- distribution(background) |> # Prediction domain
 # Now load some fractional land-use layers relevant for the species
 # Here we assume the species only occurs in Grassland and Sparse vegetation
 lu <- c(
-  terra::rast(system.file('extdata/Grassland.tif', package='insights',mustWork = TRUE)),
-  terra::rast(system.file('extdata/Sparsely.vegetated.areas.tif', package='insights',mustWork = TRUE))
+  terra::rast(system.file('extdata/Grassland.tif', package='ibis.insights',mustWork = TRUE)),
+  terra::rast(system.file('extdata/Sparsely.vegetated.areas.tif', package='ibis.insights',mustWork = TRUE))
 ) / 10000
 
 # Summarize 
@@ -133,7 +133,7 @@ Of course it is also possible to directly supply a multi-dimensional gridded fil
 using the *stars* package or directly through the ibis.iSDM scenario functionalities
 (see example below).
 
-```{r With scenario}
+```{r with-scenario}
 
 # Create a future scenario
 sc <- scenario(fit) |>
@@ -142,7 +142,7 @@ sc <- scenario(fit) |>
   project()
 
 # --- #
-# Now apply insights using time series of future land use
+# Now apply InSiGHTS using time series of future land use
 lu <- pred_future |> stars:::select.stars(primn, secdf)
 # Normalize for the sake of an example. Note that fractions are needed!
 lu <- ibis.iSDM::predictor_transform(lu, "norm") |> round(2) 

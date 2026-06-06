@@ -2,6 +2,8 @@
 % Please edit documentation in R/insights_summary.R
 \name{insights_summary}
 \alias{insights_summary}
+\alias{insights_summary,SpatRaster-method}
+\alias{insights_summary,stars-method}
 \title{Summarize inSiGHTS into an index}
 \usage{
 insights_summary(
@@ -12,9 +14,9 @@ insights_summary(
   symmetric = FALSE
 )
 
-\S4method{insights_summary}{SpatRaster,logical,character,logical,logical}(obj,toArea,fun,relative,symmetric)
+\S4method{insights_summary}{SpatRaster}(obj,toArea,fun,relative,symmetric)
 
-\S4method{insights_summary}{stars,logical,character,logical,logical}(obj,toArea,fun,relative,symmetric)
+\S4method{insights_summary}{stars}(obj,toArea,fun,relative,symmetric)
 }
 \arguments{
 \item{obj}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object with the
@@ -61,10 +63,10 @@ positive.
 \examples{
 require(terra)
 range <- terra::rast(system.file(
-  "extdata/example_range.tif", package = "insights", mustWork = TRUE
+  "extdata/example_range.tif", package = "ibis.insights", mustWork = TRUE
 ))
 lu <- terra::rast(system.file(
-  "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+  "extdata/Grassland.tif", package = "ibis.insights", mustWork = TRUE
 )) / 10000
 
 out <- insights_fraction(range = range, lu = lu)

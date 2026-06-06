@@ -23,13 +23,13 @@ load_exampledata <- function(timeperiod = "current"){
   timeperiod <- match.arg(timeperiod, c("current", "future"),several.ok = FALSE)
 
   if(timeperiod == "current"){
-    range <- terra::rast(system.file('extdata/example_range.tif', package='insights',mustWork = TRUE))
+    range <- terra::rast(system.file('extdata/example_range.tif', package='ibis.insights',mustWork = TRUE))
   } else {
     range <- stars::read_mdim(system.file('extdata/Bombina_bombina__ssp126.nc',
-                                          package = 'insights',mustWork = TRUE))
+                                          package = 'ibis.insights',mustWork = TRUE))
     range <- range |> split()
     # Focus on threshold only
-    range <- range |> dplyr::select(ensemble_threshold)
+    range <- range["ensemble_threshold"]
   }
   assertthat::assert_that(inherits(range, 'stars') || inherits(range, 'SpatRaster'))
   return(range)

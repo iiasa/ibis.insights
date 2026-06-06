@@ -40,10 +40,10 @@
 #' @examples
 #' require(terra)
 #' range <- terra::rast(system.file(
-#'   "extdata/example_range.tif", package = "insights", mustWork = TRUE
+#'   "extdata/example_range.tif", package = "ibis.insights", mustWork = TRUE
 #' ))
 #' lu_fraction <- terra::rast(system.file(
-#'   "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+#'   "extdata/Grassland.tif", package = "ibis.insights", mustWork = TRUE
 #' )) / 10000
 #'
 #' # Convert a fractional land-use layer to area per cell in km2.
@@ -71,7 +71,8 @@ methods::setGeneric(
 
 #' @name insights_area
 #' @rdname insights_area
-#' @usage \S4method{insights_area}{SpatRaster,SpatRaster,ANY,character}(range,lu,other,outfile)
+#' @aliases insights_area,SpatRaster,SpatRaster-method
+#' @usage \S4method{insights_area}{SpatRaster,SpatRaster}(range,lu,other,outfile)
 methods::setMethod(
   "insights_area",
   methods::signature(range = "SpatRaster", lu = "SpatRaster"),
@@ -194,7 +195,8 @@ methods::setMethod(
 
 #' @name insights_area
 #' @rdname insights_area
-#' @usage \S4method{insights_area}{SpatRaster,stars,ANY,character}(range,lu,other,outfile)
+#' @aliases insights_area,SpatRaster,stars-method
+#' @usage \S4method{insights_area}{SpatRaster,stars}(range,lu,other,outfile)
 methods::setMethod(
   "insights_area",
   methods::signature(range = "SpatRaster", lu = "stars"),
@@ -284,7 +286,8 @@ methods::setMethod(
 
 #' @name insights_area
 #' @rdname insights_area
-#' @usage \S4method{insights_area}{stars,stars,ANY,character}(range,lu,other,outfile)
+#' @aliases insights_area,stars,stars-method
+#' @usage \S4method{insights_area}{stars,stars}(range,lu,other,outfile)
 methods::setMethod(
   "insights_area",
   methods::signature(range = "stars", lu = "stars"),
@@ -329,6 +332,7 @@ methods::setMethod(
       if(!other_has_time && "time" %in% names(stars::st_dimensions(range_grid))) {
         range_grid <- range_grid |> stars:::slice.stars("time", 1)
       }
+      assert_fnn_available()
       other <- other |>
         stars::st_warp(range_grid, cellsize = stars::st_res(range_grid), use_gdal = FALSE)
       if(length(other)>1){
@@ -377,6 +381,7 @@ methods::setMethod(
     # Check that both sets of layers are comparable
     # If x or y differ, rewarp
     if(all( base::range(stars::st_get_dimension_values(lu, 1)) != base::range(stars::st_get_dimension_values(range, 1)) )){
+      assert_fnn_available()
       lu <- stars::st_warp(lu, range,
                            cellsize = stars::st_res(range),
                            use_gdal = FALSE,
@@ -403,7 +408,8 @@ methods::setMethod(
 
 #' @name insights_area
 #' @rdname insights_area
-#' @usage \S4method{insights_area}{stars,SpatRaster,ANY,character}(range,lu,other,outfile)
+#' @aliases insights_area,stars,SpatRaster-method
+#' @usage \S4method{insights_area}{stars,SpatRaster}(range,lu,other,outfile)
 methods::setMethod(
   "insights_area",
   methods::signature(range = "stars", lu = "SpatRaster"),
@@ -448,6 +454,7 @@ methods::setMethod(
       if(!other_has_time && "time" %in% names(stars::st_dimensions(range_grid))) {
         range_grid <- range_grid |> stars:::slice.stars("time", 1)
       }
+      assert_fnn_available()
       other <- other |>
         stars::st_warp(range_grid, cellsize = stars::st_res(range_grid), use_gdal = FALSE)
       other <- terra::rast(other)
@@ -521,7 +528,8 @@ methods::setMethod(
 #### Implementation for ibis.iSDM predictions and projections ####
 #' @name insights_area
 #' @rdname insights_area
-#' @usage \S4method{insights_area}{ANY,ANY,ANY,character}(range,lu,other,outfile)
+#' @aliases insights_area,ANY,ANY-method
+#' @usage \S4method{insights_area}{ANY,ANY}(range,lu,other,outfile)
 methods::setMethod(
   "insights_area",
   methods::signature(range = "ANY", lu = "ANY"),
@@ -568,7 +576,7 @@ methods::setMethod(
           threshold <- threshold[[grep("mean", names(threshold),value = TRUE )]]
         }
 
-        # Now call again insights
+        # Now call the InSiGHTS workflow again
         out <- insights_area(range = threshold,
                                  lu = lu,
                                  other = other,

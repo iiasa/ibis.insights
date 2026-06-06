@@ -5,12 +5,12 @@ test_that('Load data and do InSiGHTS on single layer and summarize', {
   suppressWarnings( requireNamespace("ibis.iSDM", quietly = TRUE) )
 
   # Load files
-  range <- terra::rast(system.file('extdata/example_range.tif', package='insights',mustWork = TRUE))
+  range <- terra::rast(system.file('extdata/example_range.tif', package='ibis.insights',mustWork = TRUE))
 
   # Also load land-use layers
   lu <- c(
-    terra::rast(system.file('extdata/Grassland.tif', package='insights',mustWork = TRUE)),
-    terra::rast(system.file('extdata/Sparsely.vegetated.areas.tif', package='insights',mustWork = TRUE))
+    terra::rast(system.file('extdata/Grassland.tif', package='ibis.insights',mustWork = TRUE)),
+    terra::rast(system.file('extdata/Sparsely.vegetated.areas.tif', package='ibis.insights',mustWork = TRUE))
   )
   # Convert to fractions
   lu <- lu / 10000
@@ -47,7 +47,7 @@ test_that('Load data and do InSiGHTS on single layer and summarize', {
 
   # ------ #
   # Load an additional layer to supply for
-  dem <- terra::rast(system.file('extdata/DEM.tif', package='insights',mustWork = TRUE))
+  dem <- terra::rast(system.file('extdata/DEM.tif', package='ibis.insights',mustWork = TRUE))
 
   expect_no_error(
     out <- insights_fraction(range = range,
@@ -89,18 +89,18 @@ test_that('Do InSiGHTS on multiple layers and summarize', {
   suppressWarnings( requireNamespace("ibis.iSDM", quietly = TRUE) )
 
   # Load files
-  range <- terra::rast(system.file('extdata/example_range.tif', package='insights',mustWork = TRUE))
+  range <- terra::rast(system.file('extdata/example_range.tif', package='ibis.insights',mustWork = TRUE))
 
   # Also load land-use layers
   lu <- c(
-    terra::rast(system.file('extdata/Grassland.tif', package='insights',mustWork = TRUE)),
-    terra::rast(system.file('extdata/Sparsely.vegetated.areas.tif', package='insights',mustWork = TRUE))
+    terra::rast(system.file('extdata/Grassland.tif', package='ibis.insights',mustWork = TRUE)),
+    terra::rast(system.file('extdata/Sparsely.vegetated.areas.tif', package='ibis.insights',mustWork = TRUE))
   )
   # Convert to fractions
   lu <- lu / 10000
 
   # Load an additional layer to supply for
-  dem <- terra::rast(system.file('extdata/DEM.tif', package='insights',mustWork = TRUE))
+  dem <- terra::rast(system.file('extdata/DEM.tif', package='ibis.insights',mustWork = TRUE))
 
   # ---- #
   # Sample patches and set them to 0
@@ -150,7 +150,7 @@ test_that('Do InSiGHTS on stars object', {
   suppressWarnings( requireNamespace("stars", quietly = TRUE) )
 
   # Load files
-  range <- terra::rast(system.file('extdata/example_range.tif', package='insights',mustWork = TRUE))
+  range <- terra::rast(system.file('extdata/example_range.tif', package='ibis.insights',mustWork = TRUE))
 
   # Load present and future predictors
   ll <- list.files(system.file('extdata/predictors_presfuture/',package = 'ibis.iSDM',mustWork = TRUE),full.names = T)
@@ -167,7 +167,7 @@ test_that('Do InSiGHTS on stars object', {
     round(digits = 2)
 
   # Load an additional layer to supply for
-  dem <- terra::rast(system.file('extdata/DEM.tif', package='insights',mustWork = TRUE))
+  dem <- terra::rast(system.file('extdata/DEM.tif', package='ibis.insights',mustWork = TRUE))
 
   # Input checks
   expect_true(inherits(pred_future, "stars"))

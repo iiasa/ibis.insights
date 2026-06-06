@@ -1,0 +1,206 @@
+---
+title: "General helper functions"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{General helper functions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.8,
+  out.width = "100%",
+  dpi = 96
+)
+```
+
+This article demonstrates the general helper functions in `ibis.insights`. These
+helpers are useful for preparing suitability layers, aligning temporal inputs,
+and interpreting derivative predictor terms.
+
+```{r libraries, message = FALSE, warning = FALSE}
+library(ibis.insights)
+library(terra)
+library(stars)
+```
+
+## Example data
+
+The examples use the small rasters shipped with the package. The land-use layer
+is converted from an integer fraction in `[0, 10000]` to a proportion in
+`[0, 1]`.
+
+```{r load-data}
+range <- terra::rast(system.file(
+  "extdata/example_range.tif",
+  package = "ibis.insights",
+  mustWork = TRUE
+))
+
+grassland <- terra::rast(system.file(
+  "extdata/Grassland.tif",
+  package = "ibis.insights",
+  mustWork = TRUE
+)) / 10000
+names(grassland) <- "grassland"
+
+dem <- terra::rast(system.file(
+  "extdata/DEM.tif",
+  package = "ibis.insights",
+  mustWork = TRUE
+))
+names(dem) <- "scaled_dem"
+```
+
+## Clamp values with `st_clamp()`
+
+Use `st_clamp()` when a suitability or fractional layer may contain values
+outside its valid range. This can happen after rescaling, combining predictors,
+or applying a model transformation. Values below the lower bound are set to the
+lower bound; values above the upper bound are set to the upper bound.
+
+```{r clamp-calc}
+raw_suitability <- (grassland * 1.4) - 0.2
+names(raw_suitability) <- "raw_suitability"
+
+clamped_suitability <- st_clamp(
+  raw_suitability,
+  lower = 0,
+  upper = 1
+)
+names(clamped_suitability) <- "clamped_suitability"
+```
+
+```{r clamp-summary}
+terra::global(c(raw_suitability, clamped_suitability), "range", na.rm = TRUE)
+```
+
+```{r clamp-plot}
+op <- par(mfrow = c(1, 2), mar = c(2, 2, 3, 4))
+plot(raw_suitability, main = "Before clamping")
+plot(clamped_suitability, main = "Clamped to [0, 1]")
+par(op)
+```
+
+The same function also works with `stars` objects.
+
+```{r clamp-stars}
+clamped_stars <- st_clamp(
+  stars::st_as_stars(raw_suitability),
+  lower = 0,
+  upper = 1
+)
+clamped_stars
+```
+
+## Align temporal layers with `align_temporal()`
+
+Use `align_temporal()` when two temporal raster objects use different time
+steps. For each target year, the function selects the most recent source layer
+whose year is less than or equal to the target year. If the target is earlier
+than the first source year, the first source layer is used.
+
+Here a coarse source time series is aligned to more frequent target years.
+
+```{r align-calc}
+source_lu <- c(grassland * 0.5, grassland * 0.8, grassland)
+names(source_lu) <- c("grassland_2020", "grassland_2040", "grassland_2060")
+terra::time(source_lu) <- as.Date(c(
+  "2020-01-01",
+  "2040-01-01",
+  "2060-01-01"
+))
+
+target_template <- c(range, range, range, range)
+names(target_template) <- c("target_2015", "target_2025", "target_2045", "target_2075")
+terra::time(target_template) <- as.Date(c(
+  "2015-01-01",
+  "2025-01-01",
+  "2045-01-01",
+  "2075-01-01"
+))
+
+aligned_lu <- align_temporal(source_lu, target_template)
+```
+
+```{r align-mapping}
+data.frame(
+  target_year = as.integer(terra::time(aligned_lu)),
+  selected_source_layer = names(aligned_lu)
+)
+```
+
+```{r align-plot-source}
+plot(
+  source_lu,
+  main = c("Source 2020", "Source 2040", "Source 2060")
+)
+```
+
+```{r align-plot-output}
+plot(
+  aligned_lu,
+  main = c("Target 2015", "Target 2025", "Target 2045", "Target 2075")
+)
+```
+
+## Recreate derivative predictor ranges with `create_derivate_range()`
+
+`create_derivate_range()` is a specialized helper for reconstructing the range
+of an original predictor that is represented by derivative model terms such as
+`bin`, `thresh`, or `hinge` features. A typical use is to inspect which values of
+an environmental variable are associated with positive derivative coefficients.
+
+The helper expects derivative feature names. In this simple example, a
+synthetic temperature predictor is created from the grassland fraction so it has
+nonzero values across a useful range. Positive `bin_temperature_*` coefficients
+mark values between 4 and 22 as favourable, while a negative coefficient for
+higher values is ignored.
+
+```{r derivate-data}
+temperature <- grassland * 30
+names(temperature) <- "temperature"
+
+coefs <- data.frame(
+  Feature = c(
+    "(Intercept)",
+    "bin_temperature_4_12",
+    "bin_temperature_12_22",
+    "bin_temperature_22_30"
+  ),
+  Beta = c(0, 1.2, 0.8, -0.5)
+)
+
+temperature_range <- ibis.insights:::create_derivate_range(
+  env = temperature,
+  varname = "temperature",
+  co = coefs,
+  to_binary = FALSE
+)
+
+temperature_mask <- ibis.insights:::create_derivate_range(
+  env = temperature,
+  varname = "temperature",
+  co = coefs,
+  to_binary = TRUE
+)
+names(temperature_range) <- "temperature_range"
+names(temperature_mask) <- "temperature_mask"
+```
+
+```{r derivate-summary}
+coefs
+terra::global(c(temperature, temperature_range, temperature_mask), "range", na.rm = TRUE)
+```
+
+```{r derivate-plot}
+op <- par(mfrow = c(1, 3), mar = c(2, 2, 3, 4))
+plot(temperature, main = "Original predictor")
+plot(temperature_range, main = "Positive derivative range")
+plot(temperature_mask, main = "Binary range mask")
+par(op)
+```

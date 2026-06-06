@@ -2,19 +2,24 @@
 % Please edit documentation in R/insights_fraction.R
 \name{insights_fraction}
 \alias{insights_fraction}
+\alias{insights_fraction,SpatRaster,SpatRaster-method}
+\alias{insights_fraction,SpatRaster,stars-method}
+\alias{insights_fraction,stars,stars-method}
+\alias{insights_fraction,stars,SpatRaster-method}
+\alias{insights_fraction,ANY,ANY-method}
 \title{Apply InSiGHTS with fractional land-use data}
 \usage{
 insights_fraction(range, lu, other, outfile = NULL, clamp = FALSE)
 
-\S4method{insights_fraction}{SpatRaster,SpatRaster,ANY,character,logical}(range,lu,other,outfile,clamp)
+\S4method{insights_fraction}{SpatRaster,SpatRaster}(range,lu,other,outfile,clamp)
 
-\S4method{insights_fraction}{SpatRaster,stars,ANY,character,logical}(range,lu,other,outfile,clamp)
+\S4method{insights_fraction}{SpatRaster,stars}(range,lu,other,outfile,clamp)
 
-\S4method{insights_fraction}{stars,stars,ANY,character,logical}(range,lu,other,outfile,clamp)
+\S4method{insights_fraction}{stars,stars}(range,lu,other,outfile,clamp)
 
-\S4method{insights_fraction}{stars,SpatRaster,ANY,character,logical}(range,lu,other,outfile,clamp)
+\S4method{insights_fraction}{stars,SpatRaster}(range,lu,other,outfile,clamp)
 
-\S4method{insights_fraction}{ANY,ANY,ANY,character,logical}(range,lu,other,outfile,clamp)
+\S4method{insights_fraction}{ANY,ANY}(range,lu,other,outfile,clamp)
 }
 \arguments{
 \item{range}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object describing the estimated distribution of a
@@ -63,14 +68,14 @@ calling \code{insights_fraction()}.
 require(terra)
 # Load package example rasters
 range <- terra::rast(system.file(
-  "extdata/example_range.tif", package = "insights", mustWork = TRUE
+  "extdata/example_range.tif", package = "ibis.insights", mustWork = TRUE
 ))
 lu <- c(
   terra::rast(system.file(
-    "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+    "extdata/Grassland.tif", package = "ibis.insights", mustWork = TRUE
   )),
   terra::rast(system.file(
-    "extdata/Sparsely.vegetated.areas.tif", package = "insights", mustWork = TRUE
+    "extdata/Sparsely.vegetated.areas.tif", package = "ibis.insights", mustWork = TRUE
   ))
 )
 

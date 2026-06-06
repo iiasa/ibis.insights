@@ -40,7 +40,8 @@ jobs:
         with:
           dependencies: '"all"'
           extra-packages: |
-            any::pkgdown
+            any::pkgdown,
+            local::.
           needs: website
 
       - name: Build site

@@ -19,8 +19,8 @@ test_that('Train a ibis.iSDM model and apply inSights on it', {
 
   # Also load land-use layers
   lu <- c(
-    terra::rast(system.file('extdata/Grassland.tif', package='insights',mustWork = TRUE)),
-    terra::rast(system.file('extdata/Sparsely.vegetated.areas.tif', package='insights',mustWork = TRUE))
+    terra::rast(system.file('extdata/Grassland.tif', package='ibis.insights',mustWork = TRUE)),
+    terra::rast(system.file('extdata/Sparsely.vegetated.areas.tif', package='ibis.insights',mustWork = TRUE))
   )
   # Convert to fractions
   lu <- lu / 10000
@@ -39,7 +39,7 @@ test_that('Train a ibis.iSDM model and apply inSights on it', {
   if(terra::nlyr(tr)>1) tr <- tr[[1]]
 
   # --- #
-  # Now apply insights
+  # Now apply InSiGHTS
   expect_no_error(
     suppressMessages(
       out <- insights_fraction(range = fit,lu = lu)
@@ -64,14 +64,12 @@ test_that('Make a ibis.iSDM scenario projection and apply InSiGHTS on it', {
 
   skip_if_not_installed("ibis.iSDM")
   skip_if_not_installed("stars")
-  skip_if_not_installed("lwgeom")
   skip_on_ci()
   skip_on_cran()
 
   suppressWarnings( requireNamespace("terra", quietly = TRUE) )
   suppressWarnings( requireNamespace("ibis.iSDM", quietly = TRUE) )
   suppressWarnings( requireNamespace("stars", quietly = TRUE) )
-  suppressWarnings( requireNamespace("lwgeom", quietly = TRUE) )
   suppressWarnings(
     suppressPackageStartupMessages( require("ibis.iSDM"))
   )
@@ -114,7 +112,7 @@ test_that('Make a ibis.iSDM scenario projection and apply InSiGHTS on it', {
   # Guard against ibis.iSDM API changes that cause threshold() to call
   # add_predictors() internally, resulting in "No model object found in scenario?"
   sc <- tryCatch(
-    ibis.iSDM::scenario(modf) |>
+    ibis.iSDM::scenario(modf, copy_model = TRUE) |>
       ibis.iSDM::add_predictors(pred_future, transform = 'scale', derivates = "none") |>
       ibis.iSDM::threshold() |>
       ibis.iSDM::project(),
@@ -127,7 +125,7 @@ test_that('Make a ibis.iSDM scenario projection and apply InSiGHTS on it', {
   expect_s3_class(sc, "BiodiversityScenario")
 
   # --- #
-  # Now apply insights
+  # Now apply InSiGHTS
   lu <- pred_future |> stars:::select.stars(crops, secdf)
   lu <- ibis.iSDM::predictor_transform(lu, "norm") |> round(2)
   out <- insights_fraction(range = sc,

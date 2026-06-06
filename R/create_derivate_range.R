@@ -125,17 +125,17 @@ create_derivate_range <- function(env, varname, co, to_binary = FALSE){
       lb <- o[, ncol(o)] |> as.numeric() |> min()
 
       # Small helper function
-      do <- function(z, lb){
+      apply_threshold <- function(z, lb){
         z[z<lb] <- 0
         return(z)
       }
       # Create output
       if(inherits(env, "stars")){
         out <- ibis.iSDM:::stars_to_raster(env[varname])
-        out <- lapply(out, function(z) do(z, lb))
+        out <- lapply(out, function(z) apply_threshold(z, lb))
       } else {
         out <- env[[varname]]
-        out <- do(out, lb)
+        out <- apply_threshold(out, lb)
       }
     }
 
@@ -145,7 +145,7 @@ create_derivate_range <- function(env, varname, co, to_binary = FALSE){
       assertthat::assert_that(is.numeric(lb),is.numeric(ub))
 
       # Small helper function
-      do <- function(z, lb, ub){
+      apply_bin <- function(z, lb, ub){
         z[z<lb] <- 0
         z[z>ub] <- 0
         return(z)
@@ -154,10 +154,10 @@ create_derivate_range <- function(env, varname, co, to_binary = FALSE){
       # Create output
       if(inherits(env, "stars")){
         out <- ibis.iSDM:::stars_to_raster(env[varname])
-        out <- lapply(out, function(z) do(z, lb, ub))
+        out <- lapply(out, function(z) apply_bin(z, lb, ub))
       } else {
         out <- env[[varname]]
-        out <- do(out, lb, ub)
+        out <- apply_bin(out, lb, ub)
       }
     }
 

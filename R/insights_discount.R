@@ -50,17 +50,17 @@
 #' require(terra)
 #' # Load package example rasters
 #' range <- terra::rast(system.file(
-#'   "extdata/example_range.tif", package = "insights", mustWork = TRUE
+#'   "extdata/example_range.tif", package = "ibis.insights", mustWork = TRUE
 #' ))
 #' lu <- terra::rast(system.file(
-#'   "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+#'   "extdata/Grassland.tif", package = "ibis.insights", mustWork = TRUE
 #' ))
 #' lu <- lu / 10000
 #'
 #' # Use sparse vegetation as a simple proxy for habitat age/maturity.
 #' # In real applications, use an age or maturity layer for the same land-use class.
 #' age <- terra::rast(system.file(
-#'   "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+#'   "extdata/Grassland.tif", package = "ibis.insights", mustWork = TRUE
 #' ))
 #' age <- age / 10000
 #' age <- age * 20
@@ -90,6 +90,7 @@ methods::setGeneric(
 
 #' @name insights_discount
 #' @rdname insights_discount
+#' @aliases insights_discount,SpatRaster,SpatRaster-method
 #' @usage \S4method{insights_discount}{SpatRaster,SpatRaster}(lu,age,target_age,target)
 methods::setMethod(
   "insights_discount",
@@ -156,6 +157,7 @@ methods::setMethod(
 
 #' @name insights_discount
 #' @rdname insights_discount
+#' @aliases insights_discount,SpatRaster,stars-method
 #' @usage \S4method{insights_discount}{SpatRaster,stars}(lu,age,target_age,target)
 methods::setMethod(
   "insights_discount",
@@ -174,6 +176,7 @@ methods::setMethod(
 
 #' @name insights_discount
 #' @rdname insights_discount
+#' @aliases insights_discount,stars,SpatRaster-method
 #' @usage \S4method{insights_discount}{stars,SpatRaster}(lu,age,target_age,target)
 methods::setMethod(
   "insights_discount",
@@ -208,6 +211,7 @@ methods::setMethod(
 
 #' @name insights_discount
 #' @rdname insights_discount
+#' @aliases insights_discount,stars,stars-method
 #' @usage \S4method{insights_discount}{stars,stars}(lu,age,target_age,target)
 methods::setMethod(
   "insights_discount",

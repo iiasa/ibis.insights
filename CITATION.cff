@@ -4,10 +4,10 @@
 # --------------------------------------------
 
 cff-version: 1.2.0
-message: 'To cite package "insights" in publications use:'
+message: 'To cite package "ibis.insights" in publications use:'
 type: software
 license: CC-BY-4.0
-title: 'insights: An R implementation of the InSiGHTS framework'
+title: 'ibis.insights: An R implementation of the InSiGHTS framework'
 version: '0.8'
 abstract: The package provides an implementation of the InSiGHTS modelling framework
   for creating climate and land-use indicators. This package acts a simple wrapper
@@ -25,4 +25,3 @@ contact:
   given-names: Martin
   email: jung@iiasa.ac.at
   orcid: https://orcid.org/0000-0002-7569-1390
-

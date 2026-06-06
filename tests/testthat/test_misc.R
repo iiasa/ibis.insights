@@ -63,30 +63,30 @@ test_that('st_clamp clamps SpatRaster values correctly', {
   r <- terra::rast(nrow = 5, ncol = 5, vals = seq(-2, 2, length.out = 25))
 
   # Clamp to [0, 1]
-  out <- insights:::st_clamp(r, lb = 0, ub = 1)
+  out <- ibis.insights:::st_clamp(r, lb = 0, ub = 1)
   expect_gte(terra::global(out, "min", na.rm = TRUE)[, 1], 0)
   expect_lte(terra::global(out, "max", na.rm = TRUE)[, 1], 1)
   expect_s4_class(out, "SpatRaster")
 
   # lower/upper aliases are equivalent to lb/ub
-  out_alias <- insights:::st_clamp(r, lower = 0, upper = 1)
+  out_alias <- ibis.insights:::st_clamp(r, lower = 0, upper = 1)
   expect_equal(
     terra::values(out_alias, mat = FALSE),
     terra::values(out, mat = FALSE)
   )
 
   # Only lower bound
-  out_lb <- insights:::st_clamp(r, lb = 0, ub = Inf)
+  out_lb <- ibis.insights:::st_clamp(r, lb = 0, ub = Inf)
   expect_gte(terra::global(out_lb, "min", na.rm = TRUE)[, 1], 0)
   # Upper end is not constrained, so max remains the original maximum
   expect_gt(terra::global(out_lb, "max", na.rm = TRUE)[, 1], 1)
 
   # Only upper bound
-  out_ub <- insights:::st_clamp(r, lb = -Inf, ub = 0)
+  out_ub <- ibis.insights:::st_clamp(r, lb = -Inf, ub = 0)
   expect_lte(terra::global(out_ub, "max", na.rm = TRUE)[, 1], 0)
 
   # Infinite bounds → no change
-  out_inf <- insights:::st_clamp(r, lb = -Inf, ub = Inf)
+  out_inf <- ibis.insights:::st_clamp(r, lb = -Inf, ub = Inf)
   expect_equal(
     terra::global(out_inf, "min", na.rm = TRUE)[, 1],
     terra::global(r, "min", na.rm = TRUE)[, 1]
@@ -101,7 +101,7 @@ test_that('st_clamp clamps stars values correctly', {
   vals <- array(seq(-2, 2, length.out = 25), dim = c(x = 5, y = 5))
   s <- stars::st_as_stars(list(a = vals, b = vals * 2))
 
-  out <- insights:::st_clamp(s, lower = 0, upper = 1)
+  out <- ibis.insights:::st_clamp(s, lower = 0, upper = 1)
   expect_s3_class(out, "stars")
   expect_equal(names(out), names(s))
   expect_equal(stars::st_dimensions(out), stars::st_dimensions(s))
@@ -111,13 +111,13 @@ test_that('st_clamp clamps stars values correctly', {
     expect_lte(max(out[[attr]], na.rm = TRUE), 1)
   }
 
-  out_lb <- insights:::st_clamp(s, lower = 0, upper = Inf)
+  out_lb <- ibis.insights:::st_clamp(s, lower = 0, upper = Inf)
   for(attr in names(out_lb)) {
     expect_gte(min(out_lb[[attr]], na.rm = TRUE), 0)
   }
   expect_gt(max(out_lb[["b"]], na.rm = TRUE), 1)
 
-  out_ub <- insights:::st_clamp(s, lower = -Inf, upper = 0)
+  out_ub <- ibis.insights:::st_clamp(s, lower = -Inf, upper = 0)
   for(attr in names(out_ub)) {
     expect_lte(max(out_ub[[attr]], na.rm = TRUE), 0)
   }
@@ -131,14 +131,14 @@ test_that('st_clamp input validation works', {
   r <- terra::rast(nrow = 5, ncol = 5, vals = runif(25))
 
   # lb == ub should error
-  expect_error(insights:::st_clamp(r, lb = 0.5, ub = 0.5))
+  expect_error(ibis.insights:::st_clamp(r, lb = 0.5, ub = 0.5))
 
   # lb > ub should error
-  expect_error(insights:::st_clamp(r, lb = 1, ub = 0))
+  expect_error(ibis.insights:::st_clamp(r, lb = 1, ub = 0))
 
   # Non-raster input should error
-  expect_error(insights:::st_clamp(list(a = 1), lb = 0, ub = 1))
+  expect_error(ibis.insights:::st_clamp(list(a = 1), lb = 0, ub = 1))
 
   # Non-scalar bounds should error
-  expect_error(insights:::st_clamp(r, lower = c(0, 1), upper = 1))
+  expect_error(ibis.insights:::st_clamp(r, lower = c(0, 1), upper = 1))
 })

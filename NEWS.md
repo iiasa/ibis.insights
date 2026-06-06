@@ -1,5 +1,6 @@
 # ibis.insights 0.8
 
+* Temporal alignment function added (`align_temporal()`).
 * Multiple documentation fixes and pkgdown rendering added.
 * `insights_discount()` function now working on age to maturity/full condition
 

@@ -78,3 +78,13 @@ relChangeSym <- function(v) {
   denom <- v + v[1]
   ifelse(denom == 0, NA_real_, (v - v[1]) / denom)
 }
+
+assert_fnn_available <- function() {
+  if(!requireNamespace("FNN", quietly = TRUE)) {
+    stop(
+      "Package 'FNN' is required for stars grid warping. Please install it first.",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}

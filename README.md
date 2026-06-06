@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# insights: InSiGHTS Index of Habitat Availability
+# ibis.insights: InSiGHTS Index of Habitat Availability
 
 <!-- badges: start -->
 
@@ -20,7 +20,7 @@ captures the extent of suitable habitat within the current or projected
 range of a species, with ranges sourced from existing maps (e.g. IUCN)
 or from species distribution models (SDMs).
 
-<img src="man/figures/ibis.insights_schematic.png" alt="Schematic" align="right" width="300"/>
+<img src="man/figures/insights_schematic.png" alt="Schematic" align="right" width="300"/>
 
 In its basic configuration, the InSiGHTS framework combines climatic
 suitability from an SDM with an area-of-habitat (AOH) refinement to
@@ -83,7 +83,7 @@ change, or the bounded symmetric relative difference.
 ``` r
 # Basic packages for use
 library(ibis.iSDM)
-library(insights)
+library(ibis.insights)
 library(glmnet)
 #> Warning: package 'glmnet' was built under R version 4.5.3
 #> Warning: package 'Matrix' was built under R version 4.5.3
@@ -130,8 +130,8 @@ fit <- distribution(background) |> # Prediction domain
 # Now load some fractional land-use layers relevant for the species
 # Here we assume the species only occurs in Grassland and Sparse vegetation
 lu <- c(
-  terra::rast(system.file('extdata/Grassland.tif', package='insights',mustWork = TRUE)),
-  terra::rast(system.file('extdata/Sparsely.vegetated.areas.tif', package='insights',mustWork = TRUE))
+  terra::rast(system.file('extdata/Grassland.tif', package='ibis.insights',mustWork = TRUE)),
+  terra::rast(system.file('extdata/Sparsely.vegetated.areas.tif', package='ibis.insights',mustWork = TRUE))
 ) / 10000
 
 # Summarize 
@@ -142,14 +142,14 @@ plot(out, col = c("grey90", "#FDE8A9", "#FBD35C", "#D1C34A", "#8EB65C",
      main = "Suitable habitat")
 ```
 
-<img src="man/figures/README-Train a simple SDM-1.png" alt="" width="100%" />
+<img src="man/figures/README-train-simple-sdm-1.png" alt="" width="100%" />
 
 ``` r
 
 # Summarize
 insights_summary(out)
 #>   time suitability unit
-#> 1   NA      260933  km2
+#> 1   NA    259821.3  km2
 ```
 
 Of course it is also possible to directly supply a multi-dimensional
@@ -164,23 +164,21 @@ sc <- scenario(fit) |>
   threshold() |>
   project()
 #> ! State variable of transformation not found?
-#> [32m[Scenario] 2026-06-05 17:04:49.856774 | Adding scenario predictors...[39m
-#> [32m[Setup] 2026-06-05 17:04:49.857969 | Transforming predictors...[39m
-#> [32m[Scenario] 2026-06-05 17:04:50.488875 | Starting suitability projections for 9 timesteps from 2015-01-01 <> 2095-01-01[39m
+#> [32m[Scenario] 2026-06-06 23:44:23.016945 | Adding scenario predictors...[39m
+#> [32m[Setup] 2026-06-06 23:44:23.017903 | Transforming predictors...[39m
+#> [32m[Scenario] 2026-06-06 23:44:23.759926 | Starting suitability projections for 9 timesteps from 2015-01-01 <> 2095-01-01[39m
 
 # --- #
-# Now apply insights using time series of future land use
+# Now apply InSiGHTS using time series of future land use
 lu <- pred_future |> stars:::select.stars(primn, secdf)
 # Normalize for the sake of an example. Note that fractions are needed!
 lu <- ibis.iSDM::predictor_transform(lu, "norm") |> round(2) 
-#> [31m[Setup] 2026-06-05 17:04:51.490328 | When transforming future variables, ensure that unit ranges are comparable (parameter state)![39m
+#> [31m[Setup] 2026-06-06 23:44:25.088229 | When transforming future variables, ensure that unit ranges are comparable (parameter state)![39m
 out <- insights_fraction(range = sc,
                          lu = lu)
 
 # Summarize
 o <- insights_summary(out)
-#> Warning: package 'sf' was built under R version 4.5.3
-#> Linking to GEOS 3.14.1, GDAL 3.12.1, PROJ 9.7.1; sf_use_s2() is FALSE
 
 plot(o$suitability~o$band, type = "b",
      main = "Insights index",
@@ -188,7 +186,7 @@ plot(o$suitability~o$band, type = "b",
      xlab = "Year")
 ```
 
-<img src="man/figures/README-With scenario-1.png" alt="" width="100%" />
+<img src="man/figures/README-with-scenario-1.png" alt="" width="100%" />
 
 ## Citations
 

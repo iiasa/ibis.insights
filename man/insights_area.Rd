@@ -2,19 +2,24 @@
 % Please edit documentation in R/insights_area.R
 \name{insights_area}
 \alias{insights_area}
+\alias{insights_area,SpatRaster,SpatRaster-method}
+\alias{insights_area,SpatRaster,stars-method}
+\alias{insights_area,stars,stars-method}
+\alias{insights_area,stars,SpatRaster-method}
+\alias{insights_area,ANY,ANY-method}
 \title{Apply InSiGHTS with continuous areal land-use data}
 \usage{
 insights_area(range, lu, other, outfile = NULL)
 
-\S4method{insights_area}{SpatRaster,SpatRaster,ANY,character}(range,lu,other,outfile)
+\S4method{insights_area}{SpatRaster,SpatRaster}(range,lu,other,outfile)
 
-\S4method{insights_area}{SpatRaster,stars,ANY,character}(range,lu,other,outfile)
+\S4method{insights_area}{SpatRaster,stars}(range,lu,other,outfile)
 
-\S4method{insights_area}{stars,stars,ANY,character}(range,lu,other,outfile)
+\S4method{insights_area}{stars,stars}(range,lu,other,outfile)
 
-\S4method{insights_area}{stars,SpatRaster,ANY,character}(range,lu,other,outfile)
+\S4method{insights_area}{stars,SpatRaster}(range,lu,other,outfile)
 
-\S4method{insights_area}{ANY,ANY,ANY,character}(range,lu,other,outfile)
+\S4method{insights_area}{ANY,ANY}(range,lu,other,outfile)
 }
 \arguments{
 \item{range}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object describing the estimated distribution of a
@@ -61,10 +66,10 @@ of a grid cell.}
 \examples{
 require(terra)
 range <- terra::rast(system.file(
-  "extdata/example_range.tif", package = "insights", mustWork = TRUE
+  "extdata/example_range.tif", package = "ibis.insights", mustWork = TRUE
 ))
 lu_fraction <- terra::rast(system.file(
-  "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+  "extdata/Grassland.tif", package = "ibis.insights", mustWork = TRUE
 )) / 10000
 
 # Convert a fractional land-use layer to area per cell in km2.

@@ -37,10 +37,10 @@
 #' @examples
 #' require(terra)
 #' range <- terra::rast(system.file(
-#'   "extdata/example_range.tif", package = "insights", mustWork = TRUE
+#'   "extdata/example_range.tif", package = "ibis.insights", mustWork = TRUE
 #' ))
 #' lu <- terra::rast(system.file(
-#'   "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+#'   "extdata/Grassland.tif", package = "ibis.insights", mustWork = TRUE
 #' )) / 10000
 #'
 #' out <- insights_fraction(range = range, lu = lu)
@@ -67,7 +67,8 @@ methods::setGeneric(
 
 #' @name insights_summary
 #' @rdname insights_summary
-#' @usage \S4method{insights_summary}{SpatRaster,logical,character,logical,logical}(obj,toArea,fun,relative,symmetric)
+#' @aliases insights_summary,SpatRaster-method
+#' @usage \S4method{insights_summary}{SpatRaster}(obj,toArea,fun,relative,symmetric)
 methods::setMethod(
   "insights_summary",
   methods::signature(obj = "SpatRaster"),
@@ -142,7 +143,8 @@ methods::setMethod(
 
 #' @name insights_summary
 #' @rdname insights_summary
-#' @usage \S4method{insights_summary}{stars,logical,character,logical,logical}(obj,toArea,fun,relative,symmetric)
+#' @aliases insights_summary,stars-method
+#' @usage \S4method{insights_summary}{stars}(obj,toArea,fun,relative,symmetric)
 methods::setMethod(
   "insights_summary",
   methods::signature(obj = "stars"),
@@ -169,32 +171,25 @@ methods::setMethod(
     time <- stars::st_get_dimension_values(obj, which = 3) # Assuming band 3 is the time dimension
     already_area <- max(obj[[1]], na.rm = TRUE) > 1
 
+    new <- obj |> terra::rast()
+    terra::time(new) <- time
+
     # Apply area correction if set
     if(toArea){
       if(already_area){
         warning(
           "Input values exceed 1; treating them as already in area units and skipping cell-area multiplication. Use toArea = FALSE to silence this warning."
         )
-        new <- (obj |> terra::rast())
         ar_unit <- "input"
-        terra::time(new) <- time
       } else {
-      # Calculate the area size in km2
-      ar <- stars:::st_area.stars(obj)
-      # Get the unit
-      ar_unit <- units::deparse_unit(ar$area)
-
-      new <- (obj |> terra::rast()) * (ar |> terra::rast())
-      if(ar_unit == "m2"){
-        new <- new / 1e6
+        # Calculate the cell area in km2 on the raster representation used below.
+        ar <- terra::cellSize(new[[1]], unit = "km")
+        new <- new * ar
+        terra::time(new) <- time
         ar_unit <- "km2"
-      } else {ar_unit <- "km2"}
-      terra::time(new) <- time
       }
     } else {
-      new <- (obj |> terra::rast())
       ar_unit <- "input"
-      terra::time(new) <- time
     }
     assertthat::assert_that(ibis.iSDM::is.Raster(new))
     names(new) <- rep(names(obj), terra::nlyr(new))
@@ -206,19 +201,25 @@ methods::setMethod(
     names(df)[3:4] <- c("band", "area")
     # --- #
     # Now calculate from this data.frame several metrics related to the area and change in area
-    df <- df |> dplyr::group_by(x,y) |> dplyr::mutate(id = dplyr::cur_group_id()) |>
-      dplyr::ungroup() |> dplyr::select(-x,-y) |>
-      dplyr::mutate(area = dplyr::if_else(is.na(area), 0, area)) |> # Convert missing data to 0
-      dplyr::arrange(id, band)
+    cell_key <- paste(df$x, df$y, sep = "\r")
+    df$id <- match(cell_key, unique(cell_key))
+    df <- df[, setdiff(names(df), c("x", "y")), drop = FALSE]
+    df$area[is.na(df$area)] <- 0
+    df <- df[order(df$id, df$band), , drop = FALSE]
 
     # --- #
     # Summarize
     func <- switch (fun,
       "sum" = sum,
       "min" = min, "max" = max,
-      "mean" = mean, "median" = median
+      "mean" = mean, "median" = stats::median
     )
-    results <- df |> dplyr::group_by(band) |> dplyr::summarise(suitability = func(area, na.rm = TRUE))
+    results <- stats::aggregate(
+      list(suitability = df$area),
+      by = list(band = df$band),
+      FUN = func,
+      na.rm = TRUE
+    )
     if(length(time) == nrow(results)){
       results$time <- time
     } else {

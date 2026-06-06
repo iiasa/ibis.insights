@@ -1,4 +1,4 @@
-# Manually test insights using loaded raster and stars objects
+# Manually test ibis.insights using loaded raster and stars objects
 test_that('Directly apply InSiGHTS on rasters and stars', {
 
   skip_if_not_installed("stars")
@@ -8,13 +8,13 @@ test_that('Directly apply InSiGHTS on rasters and stars', {
   suppressWarnings( requireNamespace("stars", quietly = TRUE) )
 
   # Load range
-  range <- insights:::load_exampledata(timeperiod = "current")
+  range <- ibis.insights:::load_exampledata(timeperiod = "current")
   testthat::expect_s4_class(range, "SpatRaster")
 
   # Load land-use layers
   lu <- c(
-    terra::rast(system.file('extdata/Grassland.tif', package='insights',mustWork = TRUE)),
-    terra::rast(system.file('extdata/Sparsely.vegetated.areas.tif', package='insights',mustWork = TRUE))
+    terra::rast(system.file('extdata/Grassland.tif', package='ibis.insights',mustWork = TRUE)),
+    terra::rast(system.file('extdata/Sparsely.vegetated.areas.tif', package='ibis.insights',mustWork = TRUE))
   )
   # Convert to fractions
   lu <- lu / 10000
@@ -23,7 +23,7 @@ test_that('Directly apply InSiGHTS on rasters and stars', {
   )
 
   # --- #
-  # Now apply insights
+  # Now apply InSiGHTS
   # range = current | lu = current
   expect_no_error(
     suppressMessages(
@@ -38,11 +38,11 @@ test_that('Directly apply InSiGHTS on rasters and stars', {
 
   # --------- #
   # Load future layer and repeat
-  range <- insights:::load_exampledata(timeperiod = "future")
+  range <- ibis.insights:::load_exampledata(timeperiod = "future")
   testthat::expect_s3_class(range, "stars")
   testthat::expect_length(range, 1)
 
-  # Now apply insights
+  # Now apply InSiGHTS
   # range = future | lu = current
   expect_no_error(
     suppressMessages(
@@ -98,7 +98,7 @@ test_that('Exact INSIGHTS test', {
   lu <- terra::rast(nrow = 10, ncol = 10, vals = val)
 
   # --- #
-  # Now apply insights
+  # Now apply InSiGHTS
   # range = current | lu = current
   expect_no_error(
     suppressMessages(
@@ -324,13 +324,13 @@ test_that('insights_summary works with multi-layer stars', {
   suppressWarnings(requireNamespace("stars", quietly = TRUE))
 
   # Load the built-in multi-timestep future range (Bombina bombina, SSP1-2.6)
-  range_st <- suppressMessages(insights:::load_exampledata("future"))
+  range_st <- suppressMessages(ibis.insights:::load_exampledata("future"))
   testthat::expect_s3_class(range_st, "stars")
   testthat::expect_length(range_st, 1)
 
   # Apply insights_fraction with a single current land-use layer
   lu <- terra::rast(system.file('extdata/Grassland.tif',
-                                package = 'insights', mustWork = TRUE))
+                                package = 'ibis.insights', mustWork = TRUE))
   lu <- lu / 10000
 
   out_st <- suppressMessages(insights_fraction(range = range_st, lu = lu))

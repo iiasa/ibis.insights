@@ -2,6 +2,10 @@
 % Please edit documentation in R/insights_discount.R
 \name{insights_discount}
 \alias{insights_discount}
+\alias{insights_discount,SpatRaster,SpatRaster-method}
+\alias{insights_discount,SpatRaster,stars-method}
+\alias{insights_discount,stars,SpatRaster-method}
+\alias{insights_discount,stars,stars-method}
 \title{Apply temporal discount to land-use layers based on an age variable}
 \usage{
 insights_discount(lu, age, target_age = 20, target = 0.95)
@@ -68,17 +72,17 @@ habitat reaches full value.
 require(terra)
 # Load package example rasters
 range <- terra::rast(system.file(
-  "extdata/example_range.tif", package = "insights", mustWork = TRUE
+  "extdata/example_range.tif", package = "ibis.insights", mustWork = TRUE
 ))
 lu <- terra::rast(system.file(
-  "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+  "extdata/Grassland.tif", package = "ibis.insights", mustWork = TRUE
 ))
 lu <- lu / 10000
 
 # Use sparse vegetation as a simple proxy for habitat age/maturity.
 # In real applications, use an age or maturity layer for the same land-use class.
 age <- terra::rast(system.file(
-  "extdata/Grassland.tif", package = "insights", mustWork = TRUE
+  "extdata/Grassland.tif", package = "ibis.insights", mustWork = TRUE
 ))
 age <- age / 10000
 age <- age * 20

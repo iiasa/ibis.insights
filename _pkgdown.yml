@@ -1,4 +1,4 @@
-url: https://iiasa.github.io/insights/
+url: https://iiasa.github.io/ibis.insights/
 
 template:
   bootstrap: 5
@@ -21,7 +21,7 @@ template:
       </script>
 
 home:
-  title: insights
+  title: ibis.insights
   description: >
     InSiGHTS habitat availability indicators for standalone raster workflows
     and ibis.iSDM model outputs.
@@ -30,21 +30,36 @@ navbar:
   structure:
     left: [intro, reference, articles, news]
     right: [search, github]
+  components:
+    articles:
+      text: Articles
+      menu:
+      - text: ibis.insights functions
+        href: articles/insights-functions.html
+      - text: General helper functions
+        href: articles/general-helper-functions.html
+
+articles:
+- title: Articles
+  contents:
+  - insights-functions
+  - general-helper-functions
 
 reference:
-- title: Apply InSiGHTS
+- title: Apply insights
   desc: Refine range or suitability estimates with habitat, land-use, and maturity layers.
   contents:
   - insights_fraction
   - insights_area
   - insights_discount
-- title: Summarize Indicators
+- title: Summarize indicators
   desc: Convert refined habitat rasters into area totals or relative indicators.
   contents:
   - insights_summary
   - relChange
   - relChangeSym
-- title: Helpers
+- title: Helper functions
   contents:
+  - align_temporal
   - st_clamp
   - create_derivate_range
