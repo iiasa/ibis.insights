@@ -76,9 +76,18 @@ so summarize it with `insights_summary(..., toArea = FALSE)` to avoid
 multiplying by cell area again.
 
 Use `insights_discount()` before either method when a habitat class
-should be weighted by an age or maturity layer. Use `insights_summary()`
-after either workflow to obtain absolute totals, standard relative
-change, or the bounded symmetric relative difference.
+should be weighted by an age or maturity layer. The default
+`target_age` / `target` parameterization requires a land-use-specific
+age or maturity layer and an age at which that land use should reach a
+chosen fraction of full habitat value. The optional `tau`
+parameterization requires habitat age or time since transition into
+suitable land use, plus a species- or group-specific establishment
+timescale in the same time units. The smoothed-threshold `a50` / `k`
+parameterization requires the same habitat-age or transition-age layer,
+the age at which establishment quality reaches 0.5, and a steepness
+parameter in inverse age units. Use `insights_summary()` after either
+workflow to obtain absolute totals, standard relative change, or the
+bounded symmetric relative difference.
 
 ``` r
 # Basic packages for use

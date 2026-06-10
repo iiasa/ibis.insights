@@ -56,6 +56,70 @@ dem <- terra::rast(system.file(
 names(dem) <- "scaled_dem"
 ```
 
+## Create elevation masks with `create_elevation_mask()`
+
+Use `create_elevation_mask()` to convert a DEM into an elevation suitability
+mask from a species-specific preferred interval. A binary mask assigns 1 to
+cells inside the interval and 0 outside it. Soft cutoffs keep the interval at 1
+and gradually reduce suitability outside the interval to represent uncertainty
+around the lower and upper elevation thresholds.
+
+The bundled DEM is scaled to values of 0 and 1. To make the three cutoff
+behaviours visible, this example treats values close to 1 as preferred while
+values near 0 fall outside the preference range.
+
+```{r elevation-mask-calc}
+preferred_elevation <- c(0.85, 1)
+elevation_tolerance <- 1
+
+binary_elevation_mask <- create_elevation_mask(
+  dem,
+  elevation_range = preferred_elevation
+)
+linear_elevation_mask <- create_elevation_mask(
+  dem,
+  elevation_range = preferred_elevation,
+  cutoff = "linear",
+  tolerance = elevation_tolerance
+)
+exponential_elevation_mask <- create_elevation_mask(
+  dem,
+  elevation_range = preferred_elevation,
+  cutoff = "negative_exponential",
+  tolerance = elevation_tolerance
+)
+
+names(binary_elevation_mask) <- "binary"
+names(linear_elevation_mask) <- "linear"
+names(exponential_elevation_mask) <- "negative_exponential"
+```
+
+```{r elevation-mask-summary}
+preferred_elevation
+terra::global(
+  c(binary_elevation_mask, linear_elevation_mask, exponential_elevation_mask),
+  "range",
+  na.rm = TRUE
+)
+```
+
+```{r elevation-mask-plot}
+op <- par(mfrow = c(1, 3), mar = c(2, 2, 3, 4))
+plot(binary_elevation_mask, main = "Binary")
+plot(linear_elevation_mask, main = "Linear cutoff")
+plot(exponential_elevation_mask, main = "Negative exponential")
+par(op)
+```
+
+The same function also works with `stars` objects.
+
+```{r elevation-mask-stars}
+create_elevation_mask(
+  stars::st_as_stars(dem),
+  elevation_range = preferred_elevation
+)
+```
+
 ## Clamp values with `st_clamp()`
 
 Use `st_clamp()` when a suitability or fractional layer may contain values

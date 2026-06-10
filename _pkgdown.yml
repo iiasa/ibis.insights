@@ -63,3 +63,4 @@ reference:
   - align_temporal
   - st_clamp
   - create_derivate_range
+  - create_elevation_mask

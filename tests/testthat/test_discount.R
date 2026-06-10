@@ -63,6 +63,70 @@ test_that('insights_discount formula is correct', {
   expect_equal(as.numeric(terra::values(out)[1, 1]), expected, tolerance = 1e-10)
 })
 
+test_that('insights_discount tau formula is correct', {
+
+  skip_if_not_installed("terra")
+  suppressWarnings(requireNamespace("terra", quietly = TRUE))
+
+  lu <- terra::rast(nrow = 1, ncol = 1, vals = 0.6)
+  age <- terra::rast(nrow = 1, ncol = 1, vals = 3)
+  terra::crs(lu) <- terra::crs(age) <- "EPSG:4326"
+
+  out <- insights_discount(lu, age, tau = 5)
+  expected <- 0.6 * (1 - exp(-3 / 5))
+  expect_equal(as.numeric(terra::values(out)[1, 1]), expected, tolerance = 1e-10)
+})
+
+test_that('insights_discount target-age and tau parameterizations agree', {
+
+  skip_if_not_installed("terra")
+  suppressWarnings(requireNamespace("terra", quietly = TRUE))
+
+  lu <- terra::rast(nrow = 1, ncol = 1, vals = 0.6)
+  age <- terra::rast(nrow = 1, ncol = 1, vals = 3)
+  terra::crs(lu) <- terra::crs(age) <- "EPSG:4326"
+
+  target_age <- 20
+  target <- 0.95
+  tau <- -target_age / log(1 - target)
+
+  out_target <- insights_discount(lu, age, target_age = target_age, target = target)
+  out_tau <- insights_discount(lu, age, tau = tau)
+
+  expect_equal(
+    as.numeric(terra::values(out_tau)[1, 1]),
+    as.numeric(terra::values(out_target)[1, 1]),
+    tolerance = 1e-10
+  )
+})
+
+test_that('insights_discount smoothed-threshold formula is correct', {
+
+  skip_if_not_installed("terra")
+  suppressWarnings(requireNamespace("terra", quietly = TRUE))
+
+  lu <- terra::rast(nrow = 1, ncol = 1, vals = 0.6)
+  age <- terra::rast(nrow = 1, ncol = 1, vals = 8)
+  terra::crs(lu) <- terra::crs(age) <- "EPSG:4326"
+
+  out <- insights_discount(lu, age, a50 = 5, k = 0.7)
+  expected <- 0.6 * (1 / (1 + exp(-0.7 * (8 - 5))))
+  expect_equal(as.numeric(terra::values(out)[1, 1]), expected, tolerance = 1e-10)
+})
+
+test_that('insights_discount smoothed threshold is 0.5 at a50', {
+
+  skip_if_not_installed("terra")
+  suppressWarnings(requireNamespace("terra", quietly = TRUE))
+
+  lu <- terra::rast(nrow = 1, ncol = 1, vals = 0.6)
+  age <- terra::rast(nrow = 1, ncol = 1, vals = 5)
+  terra::crs(lu) <- terra::crs(age) <- "EPSG:4326"
+
+  out <- insights_discount(lu, age, a50 = 5, k = 0.7)
+  expect_equal(as.numeric(terra::values(out)[1, 1]), 0.3, tolerance = 1e-10)
+})
+
 test_that('insights_discount at age=0 gives zero', {
 
   skip_if_not_installed("terra")
@@ -106,6 +170,13 @@ test_that('insights_discount validates inputs', {
   expect_error(insights_discount(lu, age, target = 0))
   expect_error(insights_discount(lu, age, target = 1))
   expect_error(insights_discount(lu, age, target = 1.5))
+  expect_error(insights_discount(lu, age, tau = 0))
+  expect_error(insights_discount(lu, age, tau = -1))
+  expect_error(insights_discount(lu, age, a50 = 5))
+  expect_error(insights_discount(lu, age, k = 0.7))
+  expect_error(insights_discount(lu, age, a50 = -1, k = 0.7))
+  expect_error(insights_discount(lu, age, a50 = 5, k = 0))
+  expect_error(insights_discount(lu, age, tau = 5, a50 = 5, k = 0.7))
 
   # Mismatched number of layers
   lu2 <- c(lu, lu)

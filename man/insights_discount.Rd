@@ -8,15 +8,23 @@
 \alias{insights_discount,stars,stars-method}
 \title{Apply temporal discount to land-use layers based on an age variable}
 \usage{
-insights_discount(lu, age, target_age = 20, target = 0.95)
+insights_discount(
+  lu,
+  age,
+  target_age = 20,
+  target = 0.95,
+  tau = NULL,
+  a50 = NULL,
+  k = NULL
+)
 
-\S4method{insights_discount}{SpatRaster,SpatRaster}(lu,age,target_age,target)
+\S4method{insights_discount}{SpatRaster,SpatRaster}(lu,age,target_age,target,tau,a50,k)
 
-\S4method{insights_discount}{SpatRaster,stars}(lu,age,target_age,target)
+\S4method{insights_discount}{SpatRaster,stars}(lu,age,target_age,target,tau,a50,k)
 
-\S4method{insights_discount}{stars,SpatRaster}(lu,age,target_age,target)
+\S4method{insights_discount}{stars,SpatRaster}(lu,age,target_age,target,tau,a50,k)
 
-\S4method{insights_discount}{stars,stars}(lu,age,target_age,target)
+\S4method{insights_discount}{stars,stars}(lu,age,target_age,target,tau,a50,k)
 }
 \arguments{
 \item{lu}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object of the land-use
@@ -27,25 +35,42 @@ corresponding age or maturity variable (values \code{>= 0}).
 Must match \code{lu} in number of layers / time steps.}
 
 \item{target_age}{A single positive \code{\link{numeric}} age at which habitat reaches
-\code{target} of full value. Default: \code{20}.}
+\code{target} of full value. Used only when \code{tau = NULL} and
+\code{a50 = NULL}. Default: \code{20}.}
 
 \item{target}{A single \code{\link{numeric}} target maturity value strictly between
-\code{0} and \code{1}. Default: \code{0.95}.}
+\code{0} and \code{1}. Used only when \code{tau = NULL} and
+\code{a50 = NULL}. Default: \code{0.95}.}
+
+\item{tau}{Optional single positive \code{\link{numeric}} establishment/maturation
+timescale. If supplied, the maturity factor is calculated as
+\code{1 - exp(-age / tau)} and \code{target_age} / \code{target} are
+ignored.}
+
+\item{a50}{Optional single non-negative \code{\link{numeric}} threshold age at which
+establishment quality reaches \code{0.5}. Must be supplied together with
+\code{k}. Mutually exclusive with \code{tau}.}
+
+\item{k}{Optional single positive \code{\link{numeric}} slope or steepness parameter
+for the smoothed-threshold parameterization. Must be supplied together with
+\code{a50}.}
 }
 \value{
 A discounted version of \code{lu} in the same format as the input.
 }
 \description{
-This function applies a temporal discount to land-use layers based on a
-corresponding age or maturity variable. The age variable is always connected
-to a specific land-use class (e.g. forest age linked to forest fraction) and
-represents increasing value over time.
+This function applies a temporal discount to land-use or habitat layers based
+on a corresponding age or maturity variable. The age variable is always
+connected to the layer being discounted (e.g. forest age linked to forest
+fraction) and represents increasing habitat value over time.
 
 Newly established habitat (low age) does not provide full habitat value.
-The \code{target_age} parameter controls how quickly the age translates to
-effective habitat value: it is the age at which habitat reaches
-\code{target} of its full value. The function produces a discounted version
-of \code{lu} by applying a maturity factor derived from the age:
+Three maturity parameterizations are supported:
+
+\strong{Target-age parameterization} (default): use this when the available
+information is the age at which a land-use class should reach a chosen
+fraction of its full habitat value. The \code{target_age} parameter is the
+age at which habitat reaches \code{target} of its full value:
 
 \deqn{H_{\mathrm{eff}} = H \times [1 - (1 - p)^{a / a_p}]}{H_eff = H * (1 - (1 - p)^(a / a_p))}
 
@@ -59,11 +84,50 @@ and applying:
 
 \deqn{H_{\mathrm{eff}} = H \times [1 - (1 - d)^a]}{H_eff = H * (1 - (1 - d)^a)}
 
+This requires a land-use layer and an age or maturity layer for the same
+land-use class, with \code{age} and \code{target_age} in the same time unit.
+
+\strong{Timescale parameterization}: use this when the input age represents
+habitat age or time since transition into suitable land use, and a species-
+or group-specific establishment/maturation timescale is available as
+\code{tau}:
+
+\deqn{Q = 1 - \exp(-a / \tau)}{Q = 1 - exp(-a / tau)}
+
+\deqn{H_{\mathrm{eff}} = H \times Q}{H_eff = H * Q}
+
+This requires a habitat or suitable land-use layer, a matching
+\code{habitat_age} layer supplied as \code{age}, and \code{tau} in the same
+time unit as \code{age}. When \code{tau} is supplied, \code{target_age} and
+\code{target} are ignored. The target-age and timescale parameterizations
+describe the same curve family, with
+\eqn{\tau = -a_p / \log(1 - p)}.
+
+\strong{Smoothed-threshold parameterization}: use this when establishment
+quality should transition smoothly around a threshold age. Supply \code{a50},
+the habitat age at which establishment quality reaches \code{0.5}, and
+\code{k}, the slope or steepness of the transition:
+
+\deqn{Q_{i,t} = \frac{1}{1 + \exp[-k_s(a_{i,t} - a_{50,s})]}}{Q_i,t = 1 / (1 + exp(-k * (a_i,t - a50)))}
+
+\deqn{H_{\mathrm{eff}} = H \times Q}{H_eff = H * Q}
+
+This requires a habitat or suitable land-use layer, a matching habitat-age
+or time-since-transition layer supplied as \code{age}, \code{a50} in the
+same time unit as \code{age}, and \code{k} in the inverse of that time unit.
+When \code{a50} and \code{k} are supplied, \code{target_age} and
+\code{target} are ignored. The \code{tau} and smoothed-threshold
+parameterizations are mutually exclusive.
+
 \itemize{
-\item At \code{age = 0}: the factor is \code{0} -- no habitat value for
-brand-new land-use.
-\item At \code{age = target_age}: the factor is \code{target}, e.g.
-\code{0.95} by default.
+\item In the target-age and timescale forms, at \code{age = 0}: the
+factor is \code{0} -- no habitat value for brand-new land-use.
+\item In the target-age form, at \code{age = target_age}: the factor is
+\code{target}, e.g. \code{0.95} by default.
+\item In the timescale form, at \code{age = tau}: the factor is
+\code{1 - exp(-1)}, about \code{0.63}.
+\item In the smoothed-threshold form, at \code{age = a50}: the factor is
+\code{0.5}; \code{k} controls how abruptly values move from low to high.
 \item As \code{age} increases: the factor approaches \code{1} -- mature
 habitat reaches full value.
 }
@@ -89,6 +153,10 @@ age <- age * 20
 
 # Specify that habitat reaches 95\% of full value at age 20.
 lu_discounted <- insights_discount(lu, age, target_age = 20, target = 0.95)
+# Alternative timescale form if tau is known directly:
+lu_discounted_tau <- insights_discount(lu, age, tau = 20)
+# Smoothed-threshold form:
+lu_discounted_smooth <- insights_discount(lu, age, a50 = 10, k = 0.4)
 out1 <- insights_fraction(range = range, lu = lu)
 out2 <- insights_fraction(range = range, lu = lu_discounted)
 op <- graphics::par(mfrow = c(1, 2))
