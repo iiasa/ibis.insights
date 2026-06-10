@@ -58,7 +58,7 @@ window.MathJax = {
     </div>
 
     <div class="ref-description section level2">
-    <p>Clamp all cell values in a <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.html" class="external-link">terra::SpatRaster</a></code> or <code><a href="https://rdrr.io/r/graphics/stars.html" class="external-link">stars</a></code> object to a
+    <p>Clamp all cell values in a <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.html" class="external-link">terra::SpatRaster</a></code> or <code><a href="https://r-spatial.github.io/sf/reference/stars.html" class="external-link">stars</a></code> object to a
 provided numeric interval. Values below the lower bound are set to the lower
 bound, and values above the upper bound are set to the upper bound. Missing
 values are preserved.</p>
@@ -131,10 +131,6 @@ and attribute names.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> max value   :     1</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/stars/" class="external-link">stars</a></span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: stars</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: abind</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: sf</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.4.0; sf_use_s2() is TRUE</span>
 <span class="r-in"><span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu">stars</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_as_stars.html" class="external-link">st_as_stars</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">st_clamp</span><span class="op">(</span><span class="va">s</span>, lower <span class="op">=</span> <span class="fl">0</span>, upper <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> stars object with 2 dimensions and 1 attribute</span>

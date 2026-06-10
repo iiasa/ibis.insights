@@ -29,7 +29,8 @@ insights_summary(obj,toArea,fun,relative,symmetric)
 
   A
   [`SpatRaster`](https://rspatial.github.io/terra/reference/SpatRaster-class.html)
-  or temporal [`stars`](https://rdrr.io/r/graphics/stars.html) object
+  or temporal
+  [`stars`](https://r-spatial.github.io/sf/reference/stars.html) object
   with the applied InSiGHTS outputs from `insights_fraction` or
   `insights_area`. If the number of layers is greater than 1, the
   parameter `"relative"` might be applied.

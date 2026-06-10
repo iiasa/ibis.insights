@@ -41,6 +41,95 @@ dem <- terra::rast(system.file(
 names(dem) <- "scaled_dem"
 ```
 
+## Create elevation masks with `create_elevation_mask()`
+
+Use
+[`create_elevation_mask()`](https://iiasa.github.io/ibis.insights/reference/create_elevation_mask.md)
+to convert a DEM into an elevation suitability mask from a
+species-specific preferred interval. A binary mask assigns 1 to cells
+inside the interval and 0 outside it. Soft cutoffs keep the interval at
+1 and gradually reduce suitability outside the interval to represent
+uncertainty around the lower and upper elevation thresholds.
+
+The bundled DEM is scaled to values of 0 and 1. To make the three cutoff
+behaviours visible, this example treats values close to 1 as preferred
+while values near 0 fall outside the preference range.
+
+``` r
+
+preferred_elevation <- c(0.85, 1)
+elevation_tolerance <- 1
+
+binary_elevation_mask <- create_elevation_mask(
+  dem,
+  elevation_range = preferred_elevation
+)
+linear_elevation_mask <- create_elevation_mask(
+  dem,
+  elevation_range = preferred_elevation,
+  cutoff = "linear",
+  tolerance = elevation_tolerance
+)
+exponential_elevation_mask <- create_elevation_mask(
+  dem,
+  elevation_range = preferred_elevation,
+  cutoff = "negative_exponential",
+  tolerance = elevation_tolerance
+)
+
+names(binary_elevation_mask) <- "binary"
+names(linear_elevation_mask) <- "linear"
+names(exponential_elevation_mask) <- "negative_exponential"
+```
+
+``` r
+
+preferred_elevation
+#> [1] 0.85 1.00
+terra::global(
+  c(binary_elevation_mask, linear_elevation_mask, exponential_elevation_mask),
+  "range",
+  na.rm = TRUE
+)
+#>                            min max
+#> binary               0.0000000   1
+#> linear               0.1500000   1
+#> negative_exponential 0.4274149   1
+```
+
+``` r
+
+op <- par(mfrow = c(1, 3), mar = c(2, 2, 3, 4))
+plot(binary_elevation_mask, main = "Binary")
+plot(linear_elevation_mask, main = "Linear cutoff")
+plot(exponential_elevation_mask, main = "Negative exponential")
+```
+
+![](general-helper-functions_files/figure-html/elevation-mask-plot-1.png)
+
+``` r
+
+par(op)
+```
+
+The same function also works with `stars` objects.
+
+``` r
+
+create_elevation_mask(
+  stars::st_as_stars(dem),
+  elevation_range = preferred_elevation
+)
+#> stars object with 2 dimensions and 1 attribute
+#> attribute(s):
+#>          Min. 1st Qu. Median      Mean 3rd Qu. Max.    NAs
+#> DEM.tif     0       0      0 0.4945312       1    1 299034
+#> dimension(s):
+#>   from  to  offset  delta                       refsys point x/y
+#> x    1 644  943761  10000 +proj=laea +lat_0=52 +lon... FALSE [x]
+#> y    1 564 6579903 -10000 +proj=laea +lat_0=52 +lon... FALSE [y]
+```
+
 ## Clamp values with `st_clamp()`
 
 Use

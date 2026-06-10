@@ -31,3 +31,5 @@ Convert refined habitat rasters into area totals or relative indicators.
   : Clamp raster values to specific bounds
 - [`create_derivate_range()`](https://iiasa.github.io/ibis.insights/reference/create_derivate_range.md)
   : Recreate a derivative variable based on their range
+- [`create_elevation_mask()`](https://iiasa.github.io/ibis.insights/reference/create_elevation_mask.md)
+  : Create an elevation suitability mask

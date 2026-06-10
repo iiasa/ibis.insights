@@ -110,6 +110,78 @@ land-use layer is converted from an integer fraction in
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">dem</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"scaled_dem"</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="create-elevation-masks-with-create_elevation_mask">Create elevation masks with
+<code>create_elevation_mask()</code><a class="anchor" aria-label="anchor" href="#create-elevation-masks-with-create_elevation_mask"></a>
+</h2>
+<p>Use <code><a href="../reference/create_elevation_mask.html">create_elevation_mask()</a></code> to convert a DEM into an
+elevation suitability mask from a species-specific preferred interval. A
+binary mask assigns 1 to cells inside the interval and 0 outside it.
+Soft cutoffs keep the interval at 1 and gradually reduce suitability
+outside the interval to represent uncertainty around the lower and upper
+elevation thresholds.</p>
+<p>The bundled DEM is scaled to values of 0 and 1. To make the three
+cutoff behaviours visible, this example treats values close to 1 as
+preferred while values near 0 fall outside the preference range.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">preferred_elevation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.85</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">elevation_tolerance</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span></span>
+<span><span class="va">binary_elevation_mask</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_elevation_mask.html">create_elevation_mask</a></span><span class="op">(</span></span>
+<span>  <span class="va">dem</span>,</span>
+<span>  elevation_range <span class="op">=</span> <span class="va">preferred_elevation</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">linear_elevation_mask</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_elevation_mask.html">create_elevation_mask</a></span><span class="op">(</span></span>
+<span>  <span class="va">dem</span>,</span>
+<span>  elevation_range <span class="op">=</span> <span class="va">preferred_elevation</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="st">"linear"</span>,</span>
+<span>  tolerance <span class="op">=</span> <span class="va">elevation_tolerance</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">exponential_elevation_mask</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_elevation_mask.html">create_elevation_mask</a></span><span class="op">(</span></span>
+<span>  <span class="va">dem</span>,</span>
+<span>  elevation_range <span class="op">=</span> <span class="va">preferred_elevation</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="st">"negative_exponential"</span>,</span>
+<span>  tolerance <span class="op">=</span> <span class="va">elevation_tolerance</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">binary_elevation_mask</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"binary"</span></span>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">linear_elevation_mask</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"linear"</span></span>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">exponential_elevation_mask</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"negative_exponential"</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">preferred_elevation</span></span>
+<span><span class="co">#&gt; [1] 0.85 1.00</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/global.html" class="external-link">global</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">binary_elevation_mask</span>, <span class="va">linear_elevation_mask</span>, <span class="va">exponential_elevation_mask</span><span class="op">)</span>,</span>
+<span>  <span class="st">"range"</span>,</span>
+<span>  na.rm <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;                            min max</span></span>
+<span><span class="co">#&gt; binary               0.0000000   1</span></span>
+<span><span class="co">#&gt; linear               0.1500000   1</span></span>
+<span><span class="co">#&gt; negative_exponential 0.4274149   1</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">binary_elevation_mask</span>, main <span class="op">=</span> <span class="st">"Binary"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">linear_elevation_mask</span>, main <span class="op">=</span> <span class="st">"Linear cutoff"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">exponential_elevation_mask</span>, main <span class="op">=</span> <span class="st">"Negative exponential"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="general-helper-functions_files/figure-html/elevation-mask-plot-1.png" class="r-plt" alt="" width="100%"></p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
+<p>The same function also works with <code>stars</code> objects.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_elevation_mask.html">create_elevation_mask</a></span><span class="op">(</span></span>
+<span>  <span class="fu">stars</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_as_stars.html" class="external-link">st_as_stars</a></span><span class="op">(</span><span class="va">dem</span><span class="op">)</span>,</span>
+<span>  elevation_range <span class="op">=</span> <span class="va">preferred_elevation</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; stars object with 2 dimensions and 1 attribute</span></span>
+<span><span class="co">#&gt; attribute(s):</span></span>
+<span><span class="co">#&gt;          Min. 1st Qu. Median      Mean 3rd Qu. Max.    NAs</span></span>
+<span><span class="co">#&gt; DEM.tif     0       0      0 0.4945312       1    1 299034</span></span>
+<span><span class="co">#&gt; dimension(s):</span></span>
+<span><span class="co">#&gt;   from  to  offset  delta                       refsys point x/y</span></span>
+<span><span class="co">#&gt; x    1 644  943761  10000 +proj=laea +lat_0=52 +lon... FALSE [x]</span></span>
+<span><span class="co">#&gt; y    1 564 6579903 -10000 +proj=laea +lat_0=52 +lon... FALSE [y]</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="clamp-values-with-st_clamp">Clamp values with <code>st_clamp()</code><a class="anchor" aria-label="anchor" href="#clamp-values-with-st_clamp"></a>
 </h2>
 <p>Use <code><a href="../reference/st_clamp.html">st_clamp()</a></code> when a suitability or fractional layer
@@ -117,7 +189,7 @@ may contain values outside its valid range. This can happen after
 rescaling, combining predictors, or applying a model transformation.
 Values below the lower bound are set to the lower bound; values above
 the upper bound are set to the upper bound.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">raw_suitability</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">grassland</span> <span class="op">*</span> <span class="fl">1.4</span><span class="op">)</span> <span class="op">-</span> <span class="fl">0.2</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">raw_suitability</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"raw_suitability"</span></span>
 <span></span>
@@ -127,20 +199,20 @@ the upper bound are set to the upper bound.</p>
 <span>  upper <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">clamped_suitability</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"clamped_suitability"</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/global.html" class="external-link">global</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">raw_suitability</span>, <span class="va">clamped_suitability</span><span class="op">)</span>, <span class="st">"range"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                      min     max</span></span>
 <span><span class="co">#&gt; raw_suitability     -0.2 1.14064</span></span>
 <span><span class="co">#&gt; clamped_suitability  0.0 1.00000</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">raw_suitability</span>, main <span class="op">=</span> <span class="st">"Before clamping"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">clamped_suitability</span>, main <span class="op">=</span> <span class="st">"Clamped to [0, 1]"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="general-helper-functions_files/figure-html/clamp-plot-1.png" class="r-plt" alt="" width="100%"></p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
 <p>The same function also works with <code>stars</code> objects.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">clamped_stars</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_clamp.html">st_clamp</a></span><span class="op">(</span></span>
 <span>  <span class="fu">stars</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_as_stars.html" class="external-link">st_as_stars</a></span><span class="op">(</span><span class="va">raw_suitability</span><span class="op">)</span>,</span>
 <span>  lower <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -166,7 +238,7 @@ year. If the target is earlier than the first source year, the first
 source layer is used.</p>
 <p>Here a coarse source time series is aligned to more frequent target
 years.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">source_lu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">grassland</span> <span class="op">*</span> <span class="fl">0.5</span>, <span class="va">grassland</span> <span class="op">*</span> <span class="fl">0.8</span>, <span class="va">grassland</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">source_lu</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"grassland_2020"</span>, <span class="st">"grassland_2040"</span>, <span class="st">"grassland_2060"</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/time.html" class="external-link">time</a></span><span class="op">(</span><span class="va">source_lu</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -185,7 +257,7 @@ years.</p>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">aligned_lu</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/align_temporal.html">align_temporal</a></span><span class="op">(</span><span class="va">source_lu</span>, <span class="va">target_template</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  target_year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/time.html" class="external-link">time</a></span><span class="op">(</span><span class="va">aligned_lu</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  selected_source_layer <span class="op">=</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">aligned_lu</span><span class="op">)</span></span>
@@ -195,13 +267,13 @@ years.</p>
 <span><span class="co">#&gt; 2        2025        grassland_2020</span></span>
 <span><span class="co">#&gt; 3        2045        grassland_2040</span></span>
 <span><span class="co">#&gt; 4        2075        grassland_2060</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="va">source_lu</span>,</span>
 <span>  main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Source 2020"</span>, <span class="st">"Source 2040"</span>, <span class="st">"Source 2060"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="general-helper-functions_files/figure-html/align-plot-source-1.png" class="r-plt" alt="" width="100%"></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="va">aligned_lu</span>,</span>
 <span>  main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Target 2015"</span>, <span class="st">"Target 2025"</span>, <span class="st">"Target 2045"</span>, <span class="st">"Target 2075"</span><span class="op">)</span></span>
@@ -224,7 +296,7 @@ so it has nonzero values across a useful range. Positive
 <code>bin_temperature_*</code> coefficients mark values between 4 and 22
 as favourable, while a negative coefficient for higher values is
 ignored.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">temperature</span> <span class="op">&lt;-</span> <span class="va">grassland</span> <span class="op">*</span> <span class="fl">30</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">temperature</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"temperature"</span></span>
 <span></span>
@@ -253,7 +325,7 @@ ignored.</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">temperature_range</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"temperature_range"</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">temperature_mask</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"temperature_mask"</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">coefs</span></span>
 <span><span class="co">#&gt;                 Feature Beta</span></span>
 <span><span class="co">#&gt; 1           (Intercept)  0.0</span></span>
@@ -265,13 +337,13 @@ ignored.</p>
 <span><span class="co">#&gt; temperature         0 28.728</span></span>
 <span><span class="co">#&gt; temperature_range   0 21.996</span></span>
 <span><span class="co">#&gt; temperature_mask    0  1.000</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">temperature</span>, main <span class="op">=</span> <span class="st">"Original predictor"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">temperature_range</span>, main <span class="op">=</span> <span class="st">"Positive derivative range"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">temperature_mask</span>, main <span class="op">=</span> <span class="st">"Binary range mask"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="general-helper-functions_files/figure-html/derivate-plot-1.png" class="r-plt" alt="" width="100%"></p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

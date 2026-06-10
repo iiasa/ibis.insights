@@ -86,9 +86,9 @@ additional suitability or condition masks, but they must already be scaled to
 <code>[0, 1]</code>; raw environmental layers such as elevation should be converted
 to a suitability mask before calling this function.</p>
 <p>Raster inputs are reprojected, cropped, and resampled to the range geometry
-when needed. Temporal <code><a href="https://rdrr.io/r/graphics/stars.html" class="external-link">stars</a></code> inputs may use a <code>time</code> or <code>Time</code>
+when needed. Temporal <code><a href="https://r-spatial.github.io/sf/reference/stars.html" class="external-link">stars</a></code> inputs may use a <code>time</code> or <code>Time</code>
 dimension name. If <code>outfile</code> is supplied, the extension is adjusted to
-<code>.tif</code> for raster output or <code>.nc</code> for <code><a href="https://rdrr.io/r/graphics/stars.html" class="external-link">stars</a></code> output.</p>
+<code>.tif</code> for raster output or <code>.nc</code> for <code><a href="https://r-spatial.github.io/sf/reference/stars.html" class="external-link">stars</a></code> output.</p>
     </div>
 
     <div class="section level2">
@@ -116,24 +116,24 @@ dimension name. If <code>outfile</code> is supplied, the extension is adjusted t
 
 
 <dl><dt id="arg-range">range<a class="anchor" aria-label="anchor" href="#arg-range"></a></dt>
-<dd><p>A <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.html" class="external-link">SpatRaster</a></code> or temporal <code><a href="https://rdrr.io/r/graphics/stars.html" class="external-link">stars</a></code> object describing the estimated distribution of a
+<dd><p>A <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.html" class="external-link">SpatRaster</a></code> or temporal <code><a href="https://r-spatial.github.io/sf/reference/stars.html" class="external-link">stars</a></code> object describing the estimated distribution of a
 biodiversity feature (e.g. species). Values must be binary or fractional in <code>[0, 1]</code>.
 Alternatively a <code>DistributionModel</code> fitted with <code>ibis.iSDM</code> package can be supplied.</p></dd>
 
 
 <dt id="arg-lu">lu<a class="anchor" aria-label="anchor" href="#arg-lu"></a></dt>
-<dd><p>A <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.html" class="external-link">SpatRaster</a></code> or temporal <code><a href="https://rdrr.io/r/graphics/stars.html" class="external-link">stars</a></code> object of the future land-use fractions to be applied to the range.
+<dd><p>A <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.html" class="external-link">SpatRaster</a></code> or temporal <code><a href="https://r-spatial.github.io/sf/reference/stars.html" class="external-link">stars</a></code> object of the future land-use fractions to be applied to the range.
 <strong>Each layer has to be in fractional units between 0 and 1.</strong> Multi-layer inputs are summed.</p></dd>
 
 
 <dt id="arg-other">other<a class="anchor" aria-label="anchor" href="#arg-other"></a></dt>
-<dd><p>Optional <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.html" class="external-link">SpatRaster</a></code> or temporal <code><a href="https://rdrr.io/r/graphics/stars.html" class="external-link">stars</a></code> object describing additional suitable conditions for the species.
+<dd><p>Optional <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.html" class="external-link">SpatRaster</a></code> or temporal <code><a href="https://r-spatial.github.io/sf/reference/stars.html" class="external-link">stars</a></code> object describing additional suitable conditions for the species.
 Values must already be suitability weights in <code>[0, 1]</code>.</p></dd>
 
 
 <dt id="arg-outfile">outfile<a class="anchor" aria-label="anchor" href="#arg-outfile"></a></dt>
 <dd><p>A writeable <code><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></code> of where the output should be written to. If missing, the function will return
-a <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.html" class="external-link">SpatRaster</a></code> or <code><a href="https://rdrr.io/r/graphics/stars.html" class="external-link">stars</a></code> object respectively. Missing <code>.tif</code> or <code>.nc</code> extensions are added as needed.</p></dd>
+a <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.html" class="external-link">SpatRaster</a></code> or <code><a href="https://r-spatial.github.io/sf/reference/stars.html" class="external-link">stars</a></code> object respectively. Missing <code>.tif</code> or <code>.nc</code> extensions are added as needed.</p></dd>
 
 
 <dt id="arg-clamp">clamp<a class="anchor" aria-label="anchor" href="#arg-clamp"></a></dt>
@@ -142,7 +142,7 @@ a <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.htm
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Either a <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.html" class="external-link">SpatRaster</a></code> or temporal <code><a href="https://rdrr.io/r/graphics/stars.html" class="external-link">stars</a></code> object or nothing if outputs are written directly to drive.</p>
+    <p>Either a <code><a href="https://rspatial.github.io/terra/reference/SpatRaster-class.html" class="external-link">SpatRaster</a></code> or temporal <code><a href="https://r-spatial.github.io/sf/reference/stars.html" class="external-link">stars</a></code> object or nothing if outputs are written directly to drive.</p>
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>

@@ -18,10 +18,10 @@ function.
 
 Raster inputs are reprojected, cropped, and resampled to the range
 geometry when needed. Temporal
-[`stars`](https://rdrr.io/r/graphics/stars.html) inputs may use a `time`
-or `Time` dimension name. If `outfile` is supplied, the extension is
-adjusted to `.tif` for raster output or `.nc` for
-[`stars`](https://rdrr.io/r/graphics/stars.html) output.
+[`stars`](https://r-spatial.github.io/sf/reference/stars.html) inputs
+may use a `time` or `Time` dimension name. If `outfile` is supplied, the
+extension is adjusted to `.tif` for raster output or `.nc` for
+[`stars`](https://r-spatial.github.io/sf/reference/stars.html) output.
 
 ## Usage
 
@@ -50,7 +50,8 @@ insights_fraction(range,lu,other,outfile,clamp)
 
   A
   [`SpatRaster`](https://rspatial.github.io/terra/reference/SpatRaster-class.html)
-  or temporal [`stars`](https://rdrr.io/r/graphics/stars.html) object
+  or temporal
+  [`stars`](https://r-spatial.github.io/sf/reference/stars.html) object
   describing the estimated distribution of a biodiversity feature (e.g.
   species). Values must be binary or fractional in `[0, 1]`.
   Alternatively a `DistributionModel` fitted with `ibis.iSDM` package
@@ -60,16 +61,18 @@ insights_fraction(range,lu,other,outfile,clamp)
 
   A
   [`SpatRaster`](https://rspatial.github.io/terra/reference/SpatRaster-class.html)
-  or temporal [`stars`](https://rdrr.io/r/graphics/stars.html) object of
-  the future land-use fractions to be applied to the range. **Each layer
-  has to be in fractional units between 0 and 1.** Multi-layer inputs
-  are summed.
+  or temporal
+  [`stars`](https://r-spatial.github.io/sf/reference/stars.html) object
+  of the future land-use fractions to be applied to the range. **Each
+  layer has to be in fractional units between 0 and 1.** Multi-layer
+  inputs are summed.
 
 - other:
 
   Optional
   [`SpatRaster`](https://rspatial.github.io/terra/reference/SpatRaster-class.html)
-  or temporal [`stars`](https://rdrr.io/r/graphics/stars.html) object
+  or temporal
+  [`stars`](https://r-spatial.github.io/sf/reference/stars.html) object
   describing additional suitable conditions for the species. Values must
   already be suitability weights in `[0, 1]`.
 
@@ -79,8 +82,9 @@ insights_fraction(range,lu,other,outfile,clamp)
   where the output should be written to. If missing, the function will
   return a
   [`SpatRaster`](https://rspatial.github.io/terra/reference/SpatRaster-class.html)
-  or [`stars`](https://rdrr.io/r/graphics/stars.html) object
-  respectively. Missing `.tif` or `.nc` extensions are added as needed.
+  or [`stars`](https://r-spatial.github.io/sf/reference/stars.html)
+  object respectively. Missing `.tif` or `.nc` extensions are added as
+  needed.
 
 - clamp:
 
@@ -92,7 +96,8 @@ insights_fraction(range,lu,other,outfile,clamp)
 
 Either a
 [`SpatRaster`](https://rspatial.github.io/terra/reference/SpatRaster-class.html)
-or temporal [`stars`](https://rdrr.io/r/graphics/stars.html) object or
+or temporal
+[`stars`](https://r-spatial.github.io/sf/reference/stars.html) object or
 nothing if outputs are written directly to drive.
 
 ## Note

@@ -2,11 +2,16 @@
 
 ## ibis.insights 0.8
 
+- Function to streamline creation of elevation masks
+  ([`create_elevation_mask()`](https://iiasa.github.io/ibis.insights/reference/create_elevation_mask.md)).
 - Temporal alignment function added
   ([`align_temporal()`](https://iiasa.github.io/ibis.insights/reference/align_temporal.md)).
 - Multiple documentation fixes and pkgdown rendering added.
 - [`insights_discount()`](https://iiasa.github.io/ibis.insights/reference/insights_discount.md)
   function now working on age to maturity/full condition
+- [`insights_discount()`](https://iiasa.github.io/ibis.insights/reference/insights_discount.md)
+  now supports optional `tau` establishment/maturation timescale and
+  smoothed-threshold parameterizations.
 
 ## ibis.insights 0.7
 

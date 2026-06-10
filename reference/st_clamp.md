@@ -2,10 +2,10 @@
 
 Clamp all cell values in a
 [`terra::SpatRaster`](https://rspatial.github.io/terra/reference/SpatRaster-class.html)
-or [`stars`](https://rdrr.io/r/graphics/stars.html) object to a provided
-numeric interval. Values below the lower bound are set to the lower
-bound, and values above the upper bound are set to the upper bound.
-Missing values are preserved.
+or [`stars`](https://r-spatial.github.io/sf/reference/stars.html) object
+to a provided numeric interval. Values below the lower bound are set to
+the lower bound, and values above the upper bound are set to the upper
+bound. Missing values are preserved.
 
 This is useful for keeping suitability, fractional land-use, or habitat
 condition layers inside valid ranges before they are passed to functions
@@ -84,10 +84,6 @@ st_clamp(r, lower = 0, upper = 1)
 #> max value   :     1
 
 require(stars)
-#> Loading required package: stars
-#> Loading required package: abind
-#> Loading required package: sf
-#> Linking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.4.0; sf_use_s2() is TRUE
 s <- stars::st_as_stars(r)
 st_clamp(s, lower = 0, upper = 1)
 #> stars object with 2 dimensions and 1 attribute
