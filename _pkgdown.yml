@@ -34,15 +34,18 @@ navbar:
     articles:
       text: Articles
       menu:
-      - text: ibis.insights functions
+      - text: 1) General InSiGHTS functions
         href: articles/insights-functions.html
-      - text: General helper functions
+      - text: 2) ibis.iSDM integration
+        href: articles/ibis-isdm-integration.html
+      - text: 3) Helper functions
         href: articles/general-helper-functions.html
 
 articles:
 - title: Articles
   contents:
   - insights-functions
+  - ibis-isdm-integration
   - general-helper-functions
 
 reference:

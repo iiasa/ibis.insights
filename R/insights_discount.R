@@ -292,6 +292,33 @@ methods::setMethod(
       ibis.iSDM::is.Raster(age)
     )
 
+    lu_dims <- stars::st_dimensions(lu)
+    lu_time_dim <- which(names(lu_dims) %in% c("time", "Time"))
+    if(length(lu_time_dim) == 1) {
+      names(lu_dims)[lu_time_dim] <- "time"
+      stars::st_dimensions(lu) <- lu_dims
+      age_time <- terra::time(age)
+      age_has_time <- terra::nlyr(age) > 1 &&
+        length(age_time) == terra::nlyr(age) &&
+        any(!is.na(age_time))
+
+      if(!age_has_time) {
+        if(terra::nlyr(age) != 1) {
+          stop(
+            "Static age layers for scenario discounting must have exactly one layer.",
+            call. = FALSE
+          )
+        }
+        target_time <- stars::st_get_dimension_values(lu, "time")
+        age <- do.call(c, rep(list(age), length(target_time)))
+        if(inherits(target_time, "Date") || inherits(target_time, "POSIXt")) {
+          terra::time(age) <- target_time
+        } else {
+          terra::time(age, tstep = "years") <- as.integer(as.numeric(target_time))
+        }
+      }
+    }
+
     # Convert lu to SpatRaster
     lu_rast <- terra::rast(lu)
     out_rast <- insights_discount(
@@ -380,6 +407,36 @@ methods::setMethod(
     stars::st_dimensions(lu) <- dims
     times <- stars::st_get_dimension_values(lu, "time")
 
+    age_dims_initial <- stars::st_dimensions(age)
+    if(!any(c("Time", "time") %in% names(age_dims_initial))) {
+      if(length(age_dims_initial) > 2) {
+        stop("age has extra dimensions but no time or Time dimension.",
+             call. = FALSE)
+      }
+      age_raster <- terra::rast(age)
+      if(terra::nlyr(age_raster) != 1) {
+        stop(
+          "Static age layers for scenario discounting must have exactly one layer.",
+          call. = FALSE
+        )
+      }
+      age <- do.call(c, rep(list(age_raster), length(times)))
+      if(inherits(times, "Date") || inherits(times, "POSIXt")) {
+        terra::time(age) <- times
+      } else {
+        terra::time(age, tstep = "years") <- as.integer(as.numeric(times))
+      }
+      return(insights_discount(
+        lu = lu,
+        age = age,
+        target_age = target_age,
+        target = target,
+        tau = tau,
+        a50 = a50,
+        k = k
+      ))
+    }
+
     # Check that stars age has a time dimension
     assertthat::assert_that(
       length(stars::st_dimensions(age)) >= 3,
@@ -391,10 +448,14 @@ methods::setMethod(
     stars::st_dimensions(age) <- age_dims
     age_times <- stars::st_get_dimension_values(age, "time")
 
-    assertthat::assert_that(
-      length(unique(times)) == length(unique(age_times)),
-      msg = "Number of time steps between lu and age must match!"
-    )
+    if(length(age_times) != length(times) ||
+       !identical(as.character(age_times), as.character(times))) {
+      age <- align_temporal(source = age, target = lu)
+      age_dims <- stars::st_dimensions(age)
+      names(age_dims)[3] <- "time"
+      stars::st_dimensions(age) <- age_dims
+      age_times <- stars::st_get_dimension_values(age, "time")
+    }
 
     # Aggregate lu variables if more than one
     if(length(lu) > 1) {

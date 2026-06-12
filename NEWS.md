@@ -4,8 +4,10 @@
 * Temporal alignment function added (`align_temporal()`).
 * Multiple documentation fixes and pkgdown rendering added.
 * `insights_discount()` function now working on age to maturity/full condition
-* `insights_discount()` now supports optional `tau` establishment/maturation
-  timescale and smoothed-threshold parameterizations.
+* Improved `ibis.iSDM` `DistributionModel` and `BiodiversityScenario` method coupling
+  directly `insights_fraction()` and `insights_area()`.
+* `insights_summary()` now reports standard relative change as a fraction in
+  `relative_change`, matching the scale of `relative_change_sym`.
 
 # ibis.insights 0.7
 

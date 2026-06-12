@@ -46,8 +46,8 @@ biodiversity feature into an index. If a single timestep (or object with a singl
 is provided, this function simply summarizes the suitable area.
 }
 \details{
-When \code{relative = TRUE}, the standard relative change (in percent) is computed as
-\eqn{D(t) = (x_t - x_0) / x_0 \times 100}.
+When \code{relative = TRUE}, the standard relative change is computed as
+\eqn{D(t) = (x_t - x_0) / x_0}.
 
 When \code{symmetric = TRUE}, the symmetric relative difference is also reported as
 an additional column \code{relative_change_sym}:

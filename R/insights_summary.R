@@ -19,8 +19,8 @@
 #' @param symmetric A [`logical`] flag whether to additionally compute the symmetric relative
 #' difference (Default: \code{FALSE}). Requires \code{relative = TRUE}.
 #' @details
-#' When \code{relative = TRUE}, the standard relative change (in percent) is computed as
-#' \eqn{D(t) = (x_t - x_0) / x_0 \times 100}.
+#' When \code{relative = TRUE}, the standard relative change is computed as
+#' \eqn{D(t) = (x_t - x_0) / x_0}.
 #'
 #' When \code{symmetric = TRUE}, the symmetric relative difference is also reported as
 #' an additional column \code{relative_change_sym}:
@@ -130,7 +130,7 @@ methods::setMethod(
 
     # Relative conversion if set
     if(relative && nrow(results)>1){
-      results$relative_change_perc <- relChange(results$suitability)
+      results$relative_change <- relChange(results$suitability, fac = 1)
       if(symmetric) results$relative_change_sym <- relChangeSym(results$suitability)
       results$suitability <- results$suitability - results$suitability[1]
     }
@@ -234,7 +234,7 @@ methods::setMethod(
 
     # Relative conversion if set
     if(relative && nrow(results)>1){
-      results$relative_change_perc <- relChange(results$suitability)
+      results$relative_change <- relChange(results$suitability, fac = 1)
       if(symmetric) results$relative_change_sym <- relChangeSym(results$suitability)
       results$suitability <- results$suitability - results$suitability[1]
     }

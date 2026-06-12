@@ -1,3 +1,104 @@
+test_that("ibis.iSDM DistributionModel methods delegate to extracted layers", {
+
+  skip_if_not_installed("ibis.iSDM")
+  skip_if_not_installed("terra")
+  suppressWarnings(requireNamespace("terra", quietly = TRUE))
+
+  threshold <- terra::rast(nrow = 2, ncol = 2, vals = c(0, 1, 1, 0))
+  lu <- terra::rast(nrow = 2, ncol = 2, vals = rep(0.5, 4))
+  terra::crs(threshold) <- terra::crs(lu) <- "EPSG:4326"
+
+  names(threshold) <- "threshold_mean"
+  attr(threshold, "threshold") <- 0.5
+
+  fit <- structure(
+    list(
+      show_rasters = function() "threshold_percentile",
+      get_thresholdvalue = function() 0.5,
+      get_data = function(x = "prediction") {
+        threshold
+      }
+    ),
+    class = c("DistributionModel", "R6")
+  )
+
+  out_direct <- insights_fraction(range = fit, lu = lu)
+  out_manual <- insights_fraction(range = threshold, lu = lu)
+  expect_equal(
+    terra::values(out_direct, mat = FALSE),
+    terra::values(out_manual, mat = FALSE)
+  )
+
+  area_direct <- insights_area(range = fit, lu = lu)
+  area_manual <- insights_area(range = threshold, lu = lu)
+  expect_equal(
+    terra::values(area_direct, mat = FALSE),
+    terra::values(area_manual, mat = FALSE)
+  )
+})
+
+test_that("ibis.iSDM BiodiversityScenario methods align temporal inputs", {
+
+  skip_if_not_installed("ibis.iSDM")
+  skip_if_not_installed("stars")
+  skip_if_not_installed("terra")
+  suppressWarnings(requireNamespace("stars", quietly = TRUE))
+  suppressWarnings(requireNamespace("terra", quietly = TRUE))
+
+  scenario_time <- as.Date(c("2020-01-01", "2030-01-01", "2040-01-01"))
+  scenario_dims <- c(x = 2, y = 2, time = length(scenario_time))
+  stars_dims <- stars::st_dimensions(
+    x = c(0.5, 1.5),
+    y = c(1.5, 0.5),
+    time = scenario_time,
+    .raster = c("x", "y")
+  )
+  threshold_values <- array(
+    c(0, 1, 1, 0,
+      1, 1, 0, 0,
+      1, 0, 1, 0),
+    dim = scenario_dims
+  )
+  scenario_data <- stars::st_as_stars(list(
+    threshold = threshold_values
+  ),
+  dimensions = stars_dims
+  )
+  sf::st_crs(scenario_data) <- sf::st_crs(4326)
+
+  sc <- structure(
+    list(get_data = function(what = "scenarios") scenario_data),
+    class = c("BiodiversityScenario", "R6")
+  )
+
+  lu_time <- as.Date(c("2020-01-01", "2040-01-01"))
+  lu_dims <- stars::st_dimensions(
+    x = c(0.5, 1.5),
+    y = c(1.5, 0.5),
+    time = lu_time,
+    .raster = c("x", "y")
+  )
+  lu <- stars::st_as_stars(
+    list(lu = array(0.5, dim = c(x = 2, y = 2, time = 2))),
+    dimensions = lu_dims
+  )
+  sf::st_crs(lu) <- sf::st_crs(4326)
+
+  out <- insights_fraction(range = sc, lu = lu)
+  expect_s3_class(out, "stars")
+  expect_equal(
+    length(stars::st_get_dimension_values(out, "time")),
+    length(scenario_time)
+  )
+
+  area_out <- insights_area(range = sc, lu = lu)
+  expect_s3_class(area_out, "stars")
+  expect_equal(
+    length(stars::st_get_dimension_values(area_out, "time")),
+    length(scenario_time)
+  )
+})
+
 # Test that package works and data can be loaded
 test_that('Train a ibis.iSDM model and apply inSights on it', {
 

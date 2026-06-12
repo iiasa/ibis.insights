@@ -228,6 +228,23 @@ test_that('insights_summary works with all supported fun values', {
   expect_error(insights_summary(out, fun = "variance"))
 })
 
+test_that('insights_summary reports relative change as a fraction', {
+
+  skip_if_not_installed("terra")
+  suppressWarnings(requireNamespace("terra", quietly = TRUE))
+
+  r0 <- terra::rast(nrow = 1, ncol = 1, vals = 2, crs = "EPSG:4326")
+  r1 <- terra::rast(nrow = 1, ncol = 1, vals = 3, crs = "EPSG:4326")
+  obj <- c(r0, r1)
+  terra::time(obj, tstep = "years") <- c(2020, 2040)
+
+  df <- insights_summary(obj, toArea = FALSE, relative = TRUE,
+                         symmetric = TRUE)
+  expect_equal(df$relative_change, c(0, 0.5))
+  expect_equal(df$relative_change_sym, c(0, 0.2))
+  expect_false("relative_change_perc" %in% names(df))
+})
+
 test_that('insights_summary returns NA relative change for zero baseline', {
 
   skip_if_not_installed("terra")
@@ -242,7 +259,7 @@ test_that('insights_summary returns NA relative change for zero baseline', {
     df <- insights_summary(obj, toArea = FALSE, relative = TRUE),
     regexp = "Reference value"
   )
-  expect_true(all(is.na(df$relative_change_perc)))
+  expect_true(all(is.na(df$relative_change)))
 })
 
 test_that('insights_fraction writes output to disk via outfile', {
@@ -293,15 +310,15 @@ test_that('insights_summary works with multi-layer SpatRaster', {
   df <- insights_summary(r_stack, toArea = FALSE, relative = TRUE, symmetric = FALSE)
   expect_s3_class(df, "data.frame")
   expect_equal(nrow(df), 3L)
-  expect_true("relative_change_perc" %in% names(df))
+  expect_true("relative_change" %in% names(df))
   expect_false("relative_change_sym" %in% names(df))
-  expect_equal(df$relative_change_perc[1], 0)
+  expect_equal(df$relative_change[1], 0)
 
   # Symmetric relative difference
   df_sym <- insights_summary(r_stack, toArea = FALSE, relative = TRUE, symmetric = TRUE)
   expect_s3_class(df_sym, "data.frame")
   expect_equal(nrow(df_sym), 3L)
-  expect_true("relative_change_perc" %in% names(df_sym))
+  expect_true("relative_change" %in% names(df_sym))
   expect_true("relative_change_sym" %in% names(df_sym))
   # D_sym(x_0, x_0) = 0 at baseline
   expect_equal(df_sym$relative_change_sym[1], 0)
@@ -343,7 +360,7 @@ test_that('insights_summary works with multi-layer stars', {
   )
   expect_s3_class(df, "data.frame")
   expect_true(nrow(df) > 1)
-  expect_true("relative_change_perc" %in% names(df))
+  expect_true("relative_change" %in% names(df))
   expect_false("relative_change_sym" %in% names(df))
 
   # Symmetric relative difference

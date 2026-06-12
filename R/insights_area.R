@@ -18,6 +18,11 @@
 #' dimension name. If \code{outfile} is supplied, the extension is adjusted to
 #' \code{.tif} for raster output or \code{.nc} for [`stars`] output.
 #'
+#' Direct \code{ibis.iSDM} \code{DistributionModel} and
+#' \code{BiodiversityScenario} methods use thresholded layers. Continuous
+#' suitability projections should be extracted from \code{ibis.iSDM} as
+#' \code{SpatRaster} or \code{stars} objects before calling this function.
+#'
 #' @note
 #' This function does not infer species-habitat relationships from raw land-use
 #' classes. Select, weight, or transform land-use and condition layers before
@@ -26,7 +31,8 @@
 #' of a grid cell.*
 #' @param range A [`SpatRaster`] or temporal [`stars`] object describing the estimated distribution of a
 #' biodiversity feature (e.g. species). Values must be binary or fractional in \code{[0, 1]}.
-#' Alternatively a \code{DistributionModel} fitted with \code{ibis.iSDM} package can be supplied.
+#' Alternatively a \code{DistributionModel} or \code{BiodiversityScenario}
+#' fitted with \code{ibis.iSDM} package can be supplied.
 #' @param lu A [`SpatRaster`] or temporal [`stars`] object of the future land-use areas to be applied to the range.
 #' **Each layer has to be in area units and greater than or equal to 0.** Multi-layer inputs are summed.
 #' @param other Optional [`SpatRaster`] or temporal [`stars`] object describing additional suitable conditions for the species.
@@ -324,6 +330,24 @@ methods::setMethod(
         names(other_dims)[other_time_dim] <- "time"
         stars::st_dimensions(other) <- other_dims
       }
+      if(!other_has_time && length(other_dims) > 2) {
+        stop("other has extra dimensions but no time or Time dimension.",
+             call. = FALSE)
+      }
+      if(other_has_time) {
+        assertthat::assert_that(
+          "time" %in% names(stars::st_dimensions(range)),
+          msg = "Cannot align temporal other because range has no time dimension."
+        )
+        other_time <- stars::st_get_dimension_values(other, "time")
+        range_time <- stars::st_get_dimension_values(range, "time")
+        if(length(other_time) != length(range_time) ||
+           !identical(as.character(other_time), as.character(range_time))) {
+          other <- align_temporal(source = other, target = range)
+        }
+        other_dims <- stars::st_dimensions(other)
+        other_has_time <- any(c("time", "Time") %in% names(other_dims))
+      }
       # Reproejct and rewarp
       other <- other |> sf::st_transform(crs = sf::st_crs(range))
 
@@ -370,12 +394,17 @@ methods::setMethod(
     names(dims)[time_dim] <- "time"
     stars::st_dimensions(lu) <- dims
     times <- stars::st_get_dimension_values(lu, "time")
-    # Check that time steps are identical to range
-    assertthat::assert_that(
-      length(stars::st_get_dimension_values(lu, "time")) ==
-        length(stars::st_get_dimension_values(range, "time")),
-      msg = "Number of time steps between range and land-use rasters is differring?"
-    )
+    # Align land-use time steps to the range if needed.
+    range_times <- stars::st_get_dimension_values(range, "time")
+    if(length(times) != length(range_times) ||
+       !identical(as.character(times), as.character(range_times))) {
+      lu <- align_temporal(source = lu, target = range)
+      dims <- stars::st_dimensions(lu)
+      time_dim <- match(TRUE, names(dims) %in% c("time", "Time"))
+      names(dims)[time_dim] <- "time"
+      stars::st_dimensions(lu) <- dims
+      times <- stars::st_get_dimension_values(lu, "time")
+    }
 
     # --- #
     # Check that both sets of layers are comparable
@@ -445,6 +474,24 @@ methods::setMethod(
         other_time_dim <- match(TRUE, names(other_dims) %in% c("time", "Time"))
         names(other_dims)[other_time_dim] <- "time"
         stars::st_dimensions(other) <- other_dims
+      }
+      if(!other_has_time && length(other_dims) > 2) {
+        stop("other has extra dimensions but no time or Time dimension.",
+             call. = FALSE)
+      }
+      if(other_has_time) {
+        assertthat::assert_that(
+          "time" %in% names(stars::st_dimensions(range)),
+          msg = "Cannot align temporal other because range has no time dimension."
+        )
+        other_time <- stars::st_get_dimension_values(other, "time")
+        range_time <- stars::st_get_dimension_values(range, "time")
+        if(length(other_time) != length(range_time) ||
+           !identical(as.character(other_time), as.character(range_time))) {
+          other <- align_temporal(source = other, target = range)
+        }
+        other_dims <- stars::st_dimensions(other)
+        other_has_time <- any(c("time", "Time") %in% names(other_dims))
       }
       # Reproject and rewarp
       other <- other |> sf::st_transform(crs = sf::st_crs(range))
@@ -528,81 +575,123 @@ methods::setMethod(
 #### Implementation for ibis.iSDM predictions and projections ####
 #' @name insights_area
 #' @rdname insights_area
-#' @aliases insights_area,ANY,ANY-method
-#' @usage \S4method{insights_area}{ANY,ANY}(range,lu,other,outfile)
+#' @aliases insights_area,DistributionModel,ANY-method
+#' @usage \S4method{insights_area}{DistributionModel,ANY}(range,lu,other,outfile)
 methods::setMethod(
   "insights_area",
-  methods::signature(range = "ANY", lu = "ANY"),
+  methods::signature(range = "DistributionModel", lu = "ANY"),
   function(range, lu, other, outfile = NULL) {
     assertthat::assert_that(
-      inherits(range, "DistributionModel") || inherits(range, "BiodiversityScenario"),
       inherits(lu, "stars") || ibis.iSDM::is.Raster(lu),
       missing(other) || ibis.iSDM::is.Raster(other) || inherits(other, "stars"),
       is.null(outfile) || is.character(outfile)
     )
 
-    # Correct output file extension if necessary
-    if(!is.null(outfile)){
-      assertthat::assert_that(dir.exists(dirname(outfile)),
-                              msg = "Output file directory does not exist!")
-      # Correct output file name depending on type
-      if(inherits(lu, "stars") && tolower(tools::file_ext(outfile))!="nc"){
-        outfile <- paste0(outfile, ".nc")
+    rasters <- range$show_rasters()
+    assertthat::assert_that(
+      length(rasters) > 0,
+      msg = "DistributionModel contains no raster predictions."
+    )
+    assertthat::assert_that(
+      !ibis.iSDM::is.Waiver(range$get_thresholdvalue()),
+      is.numeric(range$get_thresholdvalue()),
+      msg = paste(
+        "No thresholded raster was found.",
+        "Call ibis.iSDM::threshold() before using an ibis.iSDM object directly."
+      )
+    )
+    threshold_layer <- grep("threshold", rasters, value = TRUE,
+                            ignore.case = TRUE)
+    assertthat::assert_that(
+      length(threshold_layer) > 0,
+      msg = paste(
+        "No thresholded raster was found.",
+        "Call ibis.iSDM::threshold() before using an ibis.iSDM object directly."
+      )
+    )
+    if(length(threshold_layer) > 1) {
+      warning("Multiple thresholded layers found. Using the first one.",
+              call. = FALSE)
+    }
+    threshold <- range$get_data(threshold_layer[1])
+    if(ibis.iSDM::is.Raster(threshold) && terra::nlyr(threshold) > 1) {
+      mean_layer <- grep("mean", names(threshold), value = TRUE,
+                         ignore.case = TRUE)
+      if(length(mean_layer) > 0) {
+        threshold <- threshold[[mean_layer[1]]]
+      } else {
+        warning(
+          "Multiple threshold layers found. No mean layer was available; using the first layer.",
+          call. = FALSE
+        )
+        threshold <- threshold[[1]]
       }
     }
 
-    # Approach for fitted models
-    if(inherits(range, "DistributionModel")){
-      # Check that layer has predictions
-      assertthat::assert_that(
-        length( range$show_rasters() ) >0,
-        msg = "Fitted model contains no predictions!"
-      )
-
-      # Check that fitted object has threshold
-      assertthat::assert_that(
-        !ibis.iSDM::is.Waiver(range$get_thresholdvalue()),
-        is.numeric(range$get_thresholdvalue()),
-        msg = "No thresholded raster was found!"
-      )
-
-      # Get thresholded raster and recall with SpatRaster object
-      if( any(grep('threshold', range$show_rasters())) ){
-        tr_lyr <- grep('threshold', range$show_rasters(),value = TRUE)
-        if(length(tr_lyr)>1) warning("There appear to be multiple thresholded layers. Using the first one.")
-        threshold <- range$get_data(tr_lyr[1])
-        # Get mean layer if there are multiple
-        if( grep("mean", names(threshold),value = TRUE ) != ""){
-          threshold <- threshold[[grep("mean", names(threshold),value = TRUE )]]
-        }
-
-        # Now call the InSiGHTS workflow again
-        out <- insights_area(range = threshold,
-                                 lu = lu,
-                                 other = other,
-                                 outfile = outfile)
-        return(out)
-      } else {
-        stop("No thresholded raster was found!")
-      }
+    if(missing(other)) {
+      insights_area(range = threshold, lu = lu, outfile = outfile)
     } else {
-      # Scenario object assumed as input
+      insights_area(range = threshold, lu = lu, other = other,
+                    outfile = outfile)
+    }
+  }
+)
 
-      # Get data
-      data <- range$get_data()
-      assertthat::assert_that(inherits(data,"stars"),
-                              msg = "No projection found!")
-      assertthat::assert_that("threshold" %in% names(data),
-                              msg = "No threshold in projection found!")
-      data <- data['threshold']
+#' @name insights_area
+#' @rdname insights_area
+#' @aliases insights_area,BiodiversityScenario,ANY-method
+#' @usage \S4method{insights_area}{BiodiversityScenario,ANY}(range,lu,other,outfile)
+methods::setMethod(
+  "insights_area",
+  methods::signature(range = "BiodiversityScenario", lu = "ANY"),
+  function(range, lu, other, outfile = NULL) {
+    assertthat::assert_that(
+      inherits(lu, "stars") || ibis.iSDM::is.Raster(lu),
+      missing(other) || ibis.iSDM::is.Raster(other) || inherits(other, "stars"),
+      is.null(outfile) || is.character(outfile)
+    )
 
-      # Apply on stars
-      out <- insights_area(range = data,
-                               lu = lu,
-                               other = other,
-                               outfile = outfile
+    data <- range$get_data()
+    assertthat::assert_that(
+      inherits(data, "stars"),
+      msg = "No scenario projection found."
+    )
+    assertthat::assert_that(
+      "threshold" %in% names(data),
+      msg = paste(
+        "No threshold in scenario projection.",
+        "Call ibis.iSDM::threshold() before project() when using a scenario object directly."
       )
-      return(out)
+    )
+    threshold <- data["threshold"]
+
+    if(inherits(lu, "stars")) {
+      lu_dims <- stars::st_dimensions(lu)
+      lu_has_time <- any(c("time", "Time") %in% names(lu_dims))
+      if(!lu_has_time && length(lu_dims) > 2) {
+        stop("lu has extra dimensions but no time or Time dimension.",
+             call. = FALSE)
+      }
+      if(!lu_has_time) {
+        lu <- terra::rast(lu)
+      }
+    } else if(ibis.iSDM::is.Raster(lu)) {
+      lu_time <- terra::time(lu)
+      if(terra::nlyr(lu) > 1 && length(lu_time) == terra::nlyr(lu) &&
+         any(!is.na(lu_time))) {
+        stop(
+          "Cannot align temporal SpatRaster lu to a stars scenario projection. ",
+          "Supply lu as stars or as a static SpatRaster.",
+          call. = FALSE
+        )
+      }
+    }
+
+    if(missing(other)) {
+      insights_area(range = threshold, lu = lu, outfile = outfile)
+    } else {
+      insights_area(range = threshold, lu = lu, other = other,
+                    outfile = outfile)
     }
   }
 )

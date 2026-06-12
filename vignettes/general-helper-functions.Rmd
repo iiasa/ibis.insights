@@ -1,8 +1,8 @@
 ---
-title: "General helper functions"
+title: "3) Helper functions"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{General helper functions}
+  %\VignetteIndexEntry{3) Helper functions}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

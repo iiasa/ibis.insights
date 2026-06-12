@@ -1,8 +1,8 @@
 ---
-title: "InSiGHTS functions"
+title: "1) General InSiGHTS functions"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{InSiGHTS functions}
+  %\VignetteIndexEntry{1) General InSiGHTS functions}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -189,8 +189,8 @@ insights_summary(aoh_discounted, relative = FALSE)
 
 With a single-layer raster, `insights_summary()` reports an absolute total. With
 multiple layers or time steps, it can also report change relative to the first
-time step. The standard relative change is returned as a percentage; the
-symmetric relative change is bounded in `[-1, 1]`.
+time step. The standard relative change and symmetric relative change are both
+returned as fractions; the symmetric relative change is bounded in `[-1, 1]`.
 
 ```{r summary-series}
 aoh_series <- c(aoh_fraction, aoh_discounted, aoh_discounted * 0.8)
@@ -208,11 +208,11 @@ index_summary
 ```{r summary-plot}
 plot(
   index_summary$time,
-  index_summary$relative_change_perc,
+  index_summary$relative_change,
   type = "b",
   pch = 19,
   xlab = "Year",
-  ylab = "Relative change (%)",
+  ylab = "Relative change",
   main = "InSiGHTS index relative to 2020"
 )
 abline(h = 0, lty = 2, col = "grey50")
@@ -269,11 +269,11 @@ par(op)
 ```{r temporal-index-plot}
 plot(
   as.Date(bombina_summary$time),
-  bombina_summary$relative_change_perc,
+  bombina_summary$relative_change,
   type = "b",
   pch = 19,
   xlab = "Year",
-  ylab = "Relative change (%)",
+  ylab = "Relative change",
   main = "Temporal InSiGHTS index"
 )
 abline(h = 0, lty = 2, col = "grey50")

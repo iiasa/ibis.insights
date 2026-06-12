@@ -6,7 +6,8 @@
 \alias{insights_fraction,SpatRaster,stars-method}
 \alias{insights_fraction,stars,stars-method}
 \alias{insights_fraction,stars,SpatRaster-method}
-\alias{insights_fraction,ANY,ANY-method}
+\alias{insights_fraction,DistributionModel,ANY-method}
+\alias{insights_fraction,BiodiversityScenario,ANY-method}
 \title{Apply InSiGHTS with fractional land-use data}
 \usage{
 insights_fraction(range, lu, other, outfile = NULL, clamp = FALSE)
@@ -19,12 +20,15 @@ insights_fraction(range, lu, other, outfile = NULL, clamp = FALSE)
 
 \S4method{insights_fraction}{stars,SpatRaster}(range,lu,other,outfile,clamp)
 
-\S4method{insights_fraction}{ANY,ANY}(range,lu,other,outfile,clamp)
+\S4method{insights_fraction}{DistributionModel,ANY}(range,lu,other,outfile,clamp)
+
+\S4method{insights_fraction}{BiodiversityScenario,ANY}(range,lu,other,outfile,clamp)
 }
 \arguments{
 \item{range}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object describing the estimated distribution of a
 biodiversity feature (e.g. species). Values must be binary or fractional in \code{[0, 1]}.
-Alternatively a \code{DistributionModel} fitted with \code{ibis.iSDM} package can be supplied.}
+Alternatively a \code{DistributionModel} or \code{BiodiversityScenario}
+fitted with \code{ibis.iSDM} package can be supplied.}
 
 \item{lu}{A \code{\link[terra:SpatRaster]{SpatRaster}} or temporal \code{\link{stars}} object of the future land-use fractions to be applied to the range.
 \strong{Each layer has to be in fractional units between 0 and 1.} Multi-layer inputs are summed.}
@@ -58,6 +62,11 @@ Raster inputs are reprojected, cropped, and resampled to the range geometry
 when needed. Temporal \code{\link{stars}} inputs may use a \code{time} or \code{Time}
 dimension name. If \code{outfile} is supplied, the extension is adjusted to
 \code{.tif} for raster output or \code{.nc} for \code{\link{stars}} output.
+
+Direct \code{ibis.iSDM} \code{DistributionModel} and
+\code{BiodiversityScenario} methods use thresholded layers. Continuous
+suitability projections should be extracted from \code{ibis.iSDM} as
+\code{SpatRaster} or \code{stars} objects before calling this function.
 }
 \note{
 This function does not infer species-habitat relationships from raw land-use
