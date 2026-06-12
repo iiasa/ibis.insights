@@ -9,9 +9,14 @@
 - Multiple documentation fixes and pkgdown rendering added.
 - [`insights_discount()`](https://iiasa.github.io/ibis.insights/reference/insights_discount.md)
   function now working on age to maturity/full condition
-- [`insights_discount()`](https://iiasa.github.io/ibis.insights/reference/insights_discount.md)
-  now supports optional `tau` establishment/maturation timescale and
-  smoothed-threshold parameterizations.
+- Improved `ibis.iSDM` `DistributionModel` and `BiodiversityScenario`
+  method coupling directly
+  [`insights_fraction()`](https://iiasa.github.io/ibis.insights/reference/insights_fraction.md)
+  and
+  [`insights_area()`](https://iiasa.github.io/ibis.insights/reference/insights_area.md).
+- [`insights_summary()`](https://iiasa.github.io/ibis.insights/reference/insights_summary.md)
+  now reports standard relative change as a fraction in
+  `relative_change`, matching the scale of `relative_change_sym`.
 
 ## ibis.insights 0.7
 

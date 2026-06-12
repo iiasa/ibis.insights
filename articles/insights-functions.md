@@ -1,4 +1,4 @@
-# InSiGHTS functions
+# 1) General InSiGHTS functions
 
 This article gives a first tour of the main `insights_*()` functions.
 The examples use the small rasters shipped with the package so they can
@@ -229,8 +229,8 @@ With a single-layer raster,
 [`insights_summary()`](https://iiasa.github.io/ibis.insights/reference/insights_summary.md)
 reports an absolute total. With multiple layers or time steps, it can
 also report change relative to the first time step. The standard
-relative change is returned as a percentage; the symmetric relative
-change is bounded in `[-1, 1]`.
+relative change and symmetric relative change are both returned as
+fractions; the symmetric relative change is bounded in `[-1, 1]`.
 
 ``` r
 
@@ -244,21 +244,21 @@ index_summary <- insights_summary(
   symmetric = TRUE
 )
 index_summary
-#>   time suitability unit relative_change_perc relative_change_sym
-#> 1 2020        0.00  km2              0.00000           0.0000000
-#> 2 2040   -11944.22  km2            -50.63101          -0.3389660
-#> 3 2060   -14273.52  km2            -60.50481          -0.4337412
+#>   time suitability unit relative_change relative_change_sym
+#> 1 2020        0.00  km2       0.0000000           0.0000000
+#> 2 2040   -11944.22  km2      -0.5063101          -0.3389660
+#> 3 2060   -14273.52  km2      -0.6050481          -0.4337412
 ```
 
 ``` r
 
 plot(
   index_summary$time,
-  index_summary$relative_change_perc,
+  index_summary$relative_change,
   type = "b",
   pch = 19,
   xlab = "Year",
-  ylab = "Relative change (%)",
+  ylab = "Relative change",
   main = "InSiGHTS index relative to 2020"
 )
 abline(h = 0, lty = 2, col = "grey50")
@@ -300,26 +300,16 @@ bombina_summary <- insights_summary(
   symmetric = TRUE
 )
 bombina_summary
-#>         time       band suitability unit relative_change_perc
-#> 1 2015-01-01 2015-01-01       0.000  km2             0.000000
-#> 2 2025-01-01 2025-01-01   -1760.229  km2            -2.073683
-#> 3 2035-01-01 2035-01-01   -9637.467  km2           -11.353665
-#> 4 2045-01-01 2045-01-01   -7887.350  km2            -9.291895
-#> 5 2055-01-01 2055-01-01   -9587.168  km2           -11.294409
-#> 6 2065-01-01 2065-01-01  -13247.307  km2           -15.606329
-#> 7 2075-01-01 2075-01-01  -12746.687  km2           -15.016560
-#> 8 2085-01-01 2085-01-01  -15312.780  km2           -18.039612
-#> 9 2095-01-01 2095-01-01  -16806.513  km2           -19.799342
-#>   relative_change_sym
-#> 1          0.00000000
-#> 2         -0.01047704
-#> 3         -0.06018492
-#> 4         -0.04872312
-#> 5         -0.05985201
-#> 6         -0.08463593
-#> 7         -0.08117786
-#> 8         -0.09914033
-#> 9         -0.10987386
+#>         time       band suitability unit relative_change relative_change_sym
+#> 1 2015-01-01 2015-01-01       0.000  km2      0.00000000          0.00000000
+#> 2 2025-01-01 2025-01-01   -1760.229  km2     -0.02073683         -0.01047704
+#> 3 2035-01-01 2035-01-01   -9637.467  km2     -0.11353665         -0.06018492
+#> 4 2045-01-01 2045-01-01   -7887.350  km2     -0.09291895         -0.04872312
+#> 5 2055-01-01 2055-01-01   -9587.168  km2     -0.11294409         -0.05985201
+#> 6 2065-01-01 2065-01-01  -13247.307  km2     -0.15606329         -0.08463593
+#> 7 2075-01-01 2075-01-01  -12746.687  km2     -0.15016560         -0.08117786
+#> 8 2085-01-01 2085-01-01  -15312.780  km2     -0.18039612         -0.09914033
+#> 9 2095-01-01 2095-01-01  -16806.513  km2     -0.19799342         -0.10987386
 ```
 
 ``` r
@@ -347,11 +337,11 @@ par(op)
 
 plot(
   as.Date(bombina_summary$time),
-  bombina_summary$relative_change_perc,
+  bombina_summary$relative_change,
   type = "b",
   pch = 19,
   xlab = "Year",
-  ylab = "Relative change (%)",
+  ylab = "Relative change",
   main = "Temporal InSiGHTS index"
 )
 abline(h = 0, lty = 2, col = "grey50")

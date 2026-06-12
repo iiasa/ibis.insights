@@ -26,8 +26,9 @@ window.MathJax = {
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/insights-functions.html">ibis.insights functions</a></li>
-    <li><a class="dropdown-item" href="../articles/general-helper-functions.html">General helper functions</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/insights-functions.html">1) General InSiGHTS functions</a></li>
+    <li><a class="dropdown-item" href="../articles/ibis-isdm-integration.html">2) ibis.iSDM integration</a></li>
+    <li><a class="dropdown-item" href="../articles/general-helper-functions.html">3) Helper functions</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -51,8 +52,9 @@ window.MathJax = {
 <li>Multiple documentation fixes and pkgdown rendering added.</li>
 <li>
 <code><a href="../reference/insights_discount.html">insights_discount()</a></code> function now working on age to maturity/full condition</li>
+<li>Improved <code>ibis.iSDM</code> <code>DistributionModel</code> and <code>BiodiversityScenario</code> method coupling directly <code><a href="../reference/insights_fraction.html">insights_fraction()</a></code> and <code><a href="../reference/insights_area.html">insights_area()</a></code>.</li>
 <li>
-<code><a href="../reference/insights_discount.html">insights_discount()</a></code> now supports optional <code>tau</code> establishment/maturation timescale and smoothed-threshold parameterizations.</li>
+<code><a href="../reference/insights_summary.html">insights_summary()</a></code> now reports standard relative change as a fraction in <code>relative_change</code>, matching the scale of <code>relative_change_sym</code>.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7" id="ibisinsights-07">ibis.insights 0.7<a class="anchor" aria-label="anchor" href="#ibisinsights-07"></a></h2>

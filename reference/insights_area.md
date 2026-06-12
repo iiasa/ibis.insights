@@ -21,6 +21,11 @@ may use a `time` or `Time` dimension name. If `outfile` is supplied, the
 extension is adjusted to `.tif` for raster output or `.nc` for
 [`stars`](https://r-spatial.github.io/sf/reference/stars.html) output.
 
+Direct `ibis.iSDM` `DistributionModel` and `BiodiversityScenario`
+methods use thresholded layers. Continuous suitability projections
+should be extracted from `ibis.iSDM` as `SpatRaster` or `stars` objects
+before calling this function.
+
 ## Usage
 
 ``` r
@@ -38,7 +43,10 @@ insights_area(range,lu,other,outfile)
 # S4 method for class 'stars,SpatRaster'
 insights_area(range,lu,other,outfile)
 
-# S4 method for class 'ANY,ANY'
+# S4 method for class 'DistributionModel,ANY'
+insights_area(range,lu,other,outfile)
+
+# S4 method for class 'BiodiversityScenario,ANY'
 insights_area(range,lu,other,outfile)
 ```
 
@@ -52,8 +60,8 @@ insights_area(range,lu,other,outfile)
   [`stars`](https://r-spatial.github.io/sf/reference/stars.html) object
   describing the estimated distribution of a biodiversity feature (e.g.
   species). Values must be binary or fractional in `[0, 1]`.
-  Alternatively a `DistributionModel` fitted with `ibis.iSDM` package
-  can be supplied.
+  Alternatively a `DistributionModel` or `BiodiversityScenario` fitted
+  with `ibis.iSDM` package can be supplied.
 
 - lu:
 

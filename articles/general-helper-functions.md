@@ -1,4 +1,4 @@
-# General helper functions
+# 3) Helper functions
 
 This article demonstrates the general helper functions in
 `ibis.insights`. These helpers are useful for preparing suitability

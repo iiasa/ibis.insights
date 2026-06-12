@@ -67,8 +67,8 @@ estimates or the respective indicator.
 
 ## Details
 
-When `relative = TRUE`, the standard relative change (in percent) is
-computed as \\D(t) = (x_t - x_0) / x_0 \times 100\\.
+When `relative = TRUE`, the standard relative change is computed as
+\\D(t) = (x_t - x_0) / x_0\\.
 
 When `symmetric = TRUE`, the symmetric relative difference is also
 reported as an additional column `relative_change_sym`:
@@ -114,8 +114,8 @@ insights_summary(out, relative = FALSE)
 ts <- c(out, out * 0.8, out * 0.6)
 terra::time(ts, tstep = "years") <- c(2020, 2040, 2060)
 insights_summary(ts, relative = TRUE, symmetric = TRUE)
-#>   time suitability unit relative_change_perc relative_change_sym
-#> 1 2020       0.000  km2                    0           0.0000000
-#> 2 2040   -7468.323  km2                  -20          -0.1111111
-#> 3 2060  -14936.646  km2                  -40          -0.2500000
+#>   time suitability unit relative_change relative_change_sym
+#> 1 2020       0.000  km2             0.0           0.0000000
+#> 2 2040   -7468.323  km2            -0.2          -0.1111111
+#> 3 2060  -14936.646  km2            -0.4          -0.2500000
 ```
