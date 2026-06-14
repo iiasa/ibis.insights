@@ -285,3 +285,156 @@ methods::setMethod(
     )
   }
 )
+
+#' Apply an elevation suitability mask to a species projection
+#'
+#' @description
+#' Align an elevation suitability mask to a species projection and multiply the
+#' species values by the mask. The output follows the class, geometry, layer
+#' count, and temporal dimension of \code{species_projection}.
+#'
+#' @param elevation_mask A [`terra::SpatRaster`] or [`stars`] object containing
+#'   suitability weights in \code{[0, 1]}, typically from
+#'   \code{\link{create_elevation_mask}()}.
+#' @param species_projection A [`terra::SpatRaster`] or [`stars`] species
+#'   projection to be masked.
+#'
+#' @returns A masked species projection with the same class as
+#'   \code{species_projection}.
+#'
+#' @details
+#' The mask is reprojected, cropped, and resampled to the species grid when
+#' needed. Static masks are repeated across temporal species projections. When
+#' both inputs are same-class temporal objects, mask time steps are aligned to
+#' the species projection with \code{\link{align_temporal}()}.
+#'
+#' @examples
+#' require(terra)
+#' species <- terra::rast(nrow = 1, ncol = 3, vals = c(0.2, 0.6, 1))
+#' mask <- terra::rast(nrow = 1, ncol = 3, vals = c(0, 0.5, 1))
+#' apply_elevation_mask(mask, species)
+#'
+#' @author Martin Jung
+#' @keywords utils
+#' @export
+apply_elevation_mask <- function(elevation_mask, species_projection) {
+  mask_is_raster <- inherits(elevation_mask, "SpatRaster")
+  mask_is_stars <- inherits(elevation_mask, "stars")
+  species_is_raster <- inherits(species_projection, "SpatRaster")
+  species_is_stars <- inherits(species_projection, "stars")
+
+  assertthat::assert_that(
+    mask_is_raster || mask_is_stars,
+    species_is_raster || species_is_stars,
+    msg = "elevation_mask and species_projection must be SpatRaster or stars objects."
+  )
+
+  if(species_is_stars) {
+    assertthat::assert_that(
+      length(species_projection) == 1,
+      msg = "species_projection stars objects must have one attribute."
+    )
+    species_dims <- stars::st_dimensions(species_projection)
+    species_time_dim <- which(names(species_dims) %in% c("time", "Time"))
+    if(length(species_time_dim) > 1) {
+      stop("species_projection has more than one time dimension.", call. = FALSE)
+    }
+    if(length(species_time_dim) == 1) {
+      names(species_dims)[species_time_dim] <- "time"
+      stars::st_dimensions(species_projection) <- species_dims
+    }
+  }
+
+  if(mask_is_stars) {
+    mask_dims <- stars::st_dimensions(elevation_mask)
+    mask_time_dim <- which(names(mask_dims) %in% c("time", "Time"))
+    if(length(mask_time_dim) > 1) {
+      stop("elevation_mask has more than one time dimension.", call. = FALSE)
+    }
+    if(length(mask_time_dim) == 1) {
+      names(mask_dims)[mask_time_dim] <- "time"
+      stars::st_dimensions(elevation_mask) <- mask_dims
+    }
+  }
+
+  if(mask_is_stars && species_is_stars &&
+     "time" %in% names(stars::st_dimensions(elevation_mask)) &&
+     "time" %in% names(stars::st_dimensions(species_projection))) {
+    mask_time <- stars::st_get_dimension_values(elevation_mask, "time")
+    species_time <- stars::st_get_dimension_values(species_projection, "time")
+    if(length(mask_time) != length(species_time) ||
+       !identical(as.character(mask_time), as.character(species_time))) {
+      elevation_mask <- align_temporal(elevation_mask, species_projection)
+    }
+  }
+  if(mask_is_raster && species_is_raster) {
+    mask_time <- terra::time(elevation_mask)
+    species_time <- terra::time(species_projection)
+    mask_has_time <- terra::nlyr(elevation_mask) > 1 &&
+      length(mask_time) == terra::nlyr(elevation_mask) && any(!is.na(mask_time))
+    species_has_time <- terra::nlyr(species_projection) > 1 &&
+      length(species_time) == terra::nlyr(species_projection) && any(!is.na(species_time))
+    if(mask_has_time && species_has_time &&
+       (length(mask_time) != length(species_time) ||
+        !identical(as.character(mask_time), as.character(species_time)))) {
+      elevation_mask <- align_temporal(elevation_mask, species_projection)
+    }
+  }
+
+  species_rast <- if(species_is_stars) {
+    terra::rast(species_projection)
+  } else {
+    species_projection
+  }
+  mask_rast <- if(mask_is_stars) {
+    terra::rast(elevation_mask)
+  } else {
+    elevation_mask
+  }
+
+  if(!terra::same.crs(species_rast, mask_rast)) {
+    assertthat::assert_that(
+      nzchar(terra::crs(species_rast)) && nzchar(terra::crs(mask_rast)),
+      msg = "Both inputs must have a CRS when reprojection is needed."
+    )
+    mask_rast <- terra::project(mask_rast, terra::crs(species_rast))
+  }
+  if(!terra::compareGeom(species_rast, mask_rast, stopOnError = FALSE)) {
+    mask_rast <- terra::crop(mask_rast, species_rast)
+    mask_rast <- terra::resample(mask_rast, species_rast, method = "average", threads = TRUE)
+  }
+
+  mask_range <- terra::global(mask_rast, "range", na.rm = TRUE)
+  assertthat::assert_that(
+    all(mask_range[["min"]] >= 0),
+    all(mask_range[["max"]] <= 1),
+    msg = "elevation_mask must contain suitability weights in [0, 1]."
+  )
+
+  species_time <- terra::time(species_rast)
+  if(terra::nlyr(mask_rast) == 1 && terra::nlyr(species_rast) > 1) {
+    mask_rast <- do.call(c, rep(list(mask_rast), terra::nlyr(species_rast)))
+    if(length(species_time) == terra::nlyr(species_rast) && any(!is.na(species_time))) {
+      terra::time(mask_rast) <- species_time
+    }
+  } else if(terra::nlyr(mask_rast) != terra::nlyr(species_rast)) {
+    stop(
+      "elevation_mask must have one layer or the same temporal layers as species_projection.",
+      call. = FALSE
+    )
+  }
+
+  out <- species_rast * mask_rast
+  names(out) <- names(species_rast)
+  if(length(species_time) == terra::nlyr(out) && any(!is.na(species_time))) {
+    terra::time(out) <- species_time
+  }
+
+  if(species_is_stars) {
+    out <- stars::st_as_stars(out, crs = sf::st_crs(species_projection))
+    stars::st_dimensions(out) <- stars::st_dimensions(species_projection)
+    names(out) <- names(species_projection)
+  }
+
+  out
+}

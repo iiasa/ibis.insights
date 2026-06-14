@@ -67,3 +67,4 @@ reference:
   - st_clamp
   - create_derivate_range
   - create_elevation_mask
+  - apply_elevation_mask
