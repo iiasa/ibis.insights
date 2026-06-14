@@ -291,7 +291,7 @@ land_use_future <- ibis.iSDM::predictor_transform(
   option = "norm"
 ) |>
   round(2)
-#> [Setup] 2026-06-12 17:27:15.778832 | When transforming future variables, ensure that unit ranges are comparable (parameter state)!
+#> [Setup] 2026-06-14 15:07:39.302828 | When transforming future variables, ensure that unit ranges are comparable (parameter state)!
 names(land_use_future) <- c("crops", "secondary_forest")
 
 stars::st_get_dimension_values(land_use_future, "Time")
