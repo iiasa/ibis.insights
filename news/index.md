@@ -2,6 +2,8 @@
 
 ## ibis.insights 0.9
 
+- CRAN release with minor vignette fixes.
+
 ## ibis.insights 0.8
 
 - Function to streamline creation of elevation masks
