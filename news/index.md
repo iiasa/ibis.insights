@@ -1,5 +1,7 @@
 # Changelog
 
+## ibis.insights 0.9
+
 ## ibis.insights 0.8
 
 - Function to streamline creation of elevation masks

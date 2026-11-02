@@ -11,13 +11,13 @@ Source:
 [`DESCRIPTION`](https://github.com/iiasa/ibis.insights/blob/main/DESCRIPTION)
 
 Jung M (2026). *ibis.insights: An 'R' Implementation of the InSiGHTS
-Framework*. R package version 0.8,
+Framework*. R package version 0.9,
 <https://github.com/iiasa/ibis.insights>.
 
     @Manual{,
       title = {ibis.insights: An 'R' Implementation of the InSiGHTS Framework},
       author = {Martin Jung},
       year = {2026},
-      note = {R package version 0.8},
+      note = {R package version 0.9},
       url = {https://github.com/iiasa/ibis.insights},
     }
