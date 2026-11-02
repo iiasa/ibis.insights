@@ -320,6 +320,7 @@ temporal range inputs.</p>
 <span>  package <span class="op">=</span> <span class="st">"ibis.insights"</span>,</span>
 <span>  mustWork <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; for reading time stamps, package CFtime is required: please install it first</span></span>
 <span><span class="va">bombina_range</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/split.html" class="external-link">split</a></span><span class="op">(</span><span class="va">bombina_range</span><span class="op">)</span></span>
 <span><span class="va">bombina_range</span> <span class="op">&lt;-</span> <span class="va">bombina_range</span><span class="op">[</span><span class="st">"ensemble_threshold"</span><span class="op">]</span></span></code></pre></div>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
@@ -337,16 +338,26 @@ temporal range inputs.</p>
 <span>  symmetric <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">bombina_summary</span></span>
-<span><span class="co">#&gt;         time       band suitability unit relative_change relative_change_sym</span></span>
-<span><span class="co">#&gt; 1 2015-01-01 2015-01-01       0.000  km2      0.00000000          0.00000000</span></span>
-<span><span class="co">#&gt; 2 2025-01-01 2025-01-01   -1760.229  km2     -0.02073683         -0.01047704</span></span>
-<span><span class="co">#&gt; 3 2035-01-01 2035-01-01   -9637.467  km2     -0.11353665         -0.06018492</span></span>
-<span><span class="co">#&gt; 4 2045-01-01 2045-01-01   -7887.350  km2     -0.09291895         -0.04872312</span></span>
-<span><span class="co">#&gt; 5 2055-01-01 2055-01-01   -9587.168  km2     -0.11294409         -0.05985201</span></span>
-<span><span class="co">#&gt; 6 2065-01-01 2065-01-01  -13247.307  km2     -0.15606329         -0.08463593</span></span>
-<span><span class="co">#&gt; 7 2075-01-01 2075-01-01  -12746.687  km2     -0.15016560         -0.08117786</span></span>
-<span><span class="co">#&gt; 8 2085-01-01 2085-01-01  -15312.780  km2     -0.18039612         -0.09914033</span></span>
-<span><span class="co">#&gt; 9 2095-01-01 2095-01-01  -16806.513  km2     -0.19799342         -0.10987386</span></span></code></pre></div>
+<span><span class="co">#&gt;                            time  band suitability unit relative_change</span></span>
+<span><span class="co">#&gt; 1 16436 [days since 1970-01-01] 16436       0.000  km2      0.00000000</span></span>
+<span><span class="co">#&gt; 2 20089 [days since 1970-01-01] 20089   -1760.229  km2     -0.02073683</span></span>
+<span><span class="co">#&gt; 3 23741 [days since 1970-01-01] 23741   -9637.467  km2     -0.11353665</span></span>
+<span><span class="co">#&gt; 4 27394 [days since 1970-01-01] 27394   -7887.350  km2     -0.09291895</span></span>
+<span><span class="co">#&gt; 5 31046 [days since 1970-01-01] 31046   -9587.168  km2     -0.11294409</span></span>
+<span><span class="co">#&gt; 6 34699 [days since 1970-01-01] 34699  -13247.307  km2     -0.15606329</span></span>
+<span><span class="co">#&gt; 7 38351 [days since 1970-01-01] 38351  -12746.687  km2     -0.15016560</span></span>
+<span><span class="co">#&gt; 8 42004 [days since 1970-01-01] 42004  -15312.780  km2     -0.18039612</span></span>
+<span><span class="co">#&gt; 9 45656 [days since 1970-01-01] 45656  -16806.513  km2     -0.19799342</span></span>
+<span><span class="co">#&gt;   relative_change_sym</span></span>
+<span><span class="co">#&gt; 1          0.00000000</span></span>
+<span><span class="co">#&gt; 2         -0.01047704</span></span>
+<span><span class="co">#&gt; 3         -0.06018492</span></span>
+<span><span class="co">#&gt; 4         -0.04872312</span></span>
+<span><span class="co">#&gt; 5         -0.05985201</span></span>
+<span><span class="co">#&gt; 6         -0.08463593</span></span>
+<span><span class="co">#&gt; 7         -0.08117786</span></span>
+<span><span class="co">#&gt; 8         -0.09914033</span></span>
+<span><span class="co">#&gt; 9         -0.10987386</span></span></code></pre></div>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bombina_aoh_raster</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">bombina_aoh</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/time.html" class="external-link">time</a></span><span class="op">(</span><span class="va">bombina_aoh_raster</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu">stars</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_dimensions.html" class="external-link">st_get_dimension_values</a></span><span class="op">(</span></span>
@@ -385,7 +396,7 @@ temporal range inputs.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

@@ -93,6 +93,7 @@ library(glmnet)
 #> Warning: package 'glmnet' was built under R version 4.5.3
 #> Warning: package 'Matrix' was built under R version 4.5.3
 library(terra)
+#> Warning: package 'terra' was built under R version 4.5.3
 ```
 
 The workflow below uses **ibis.iSDM** to train a simple SDM and then
@@ -156,7 +157,7 @@ plot(out, col = c("grey90", "#FDE8A9", "#FBD35C", "#D1C34A", "#8EB65C",
 # Summarize
 insights_summary(out)
 #>   time suitability unit
-#> 1   NA    259821.3  km2
+#> 1   NA    253344.3  km2
 ```
 
 Of course it is also possible to directly supply a multi-dimensional
@@ -167,21 +168,31 @@ scenario functionalities (see example below).
 
 
 # Create a future scenario
-sc <- scenario(fit) |>
+sc <- scenario(fit, copy_model = TRUE) |>
   add_predictors(env = pred_climate, transform = 'scale', derivates = "none") |>
   threshold() |>
   project()
+#> [Scenario] 2026-11-02 20:52:15.351303 | Saving model directly in scenario object!
 #> ! State variable of transformation not found?
-#> [Scenario] 2026-06-06 23:44:23.016945 | Adding scenario predictors...
-#> [Setup] 2026-06-06 23:44:23.017903 | Transforming predictors...
-#> [Scenario] 2026-06-06 23:44:23.759926 | Starting suitability projections for 9 timesteps from 2015-01-01 <> 2095-01-01
+#> [Scenario] 2026-11-02 20:52:15.408055 | Adding scenario predictors...
+#> [Setup] 2026-11-02 20:52:15.409189 | Transforming predictors...
+#> [Scenario] 2026-11-02 20:52:16.304355 | Starting suitability projections for 9 timesteps from 2015-01-01 <> 2095-01-01
+#> Creating projections (-) [=========>------------------------------------]
+#> 22%Creating projections (\) [==============>-------------------------------]
+#> 33%Creating projections (|) [===================>--------------------------]
+#> 44%Creating projections (/) [=========================>--------------------]
+#> 56%Creating projections (-) [==============================>---------------]
+#> 67%Creating projections (\) [===================================>----------]
+#> 78%Creating projections (|) [========================================>-----]
+#> 89%Creating projections (/) [==============================================]
+#> 100%
 
 # --- #
 # Now apply InSiGHTS using time series of future land use
 lu <- pred_future |> stars:::select.stars(primn, secdf)
 # Normalize for the sake of an example. Note that fractions are needed!
 lu <- ibis.iSDM::predictor_transform(lu, "norm") |> round(2) 
-#> [Setup] 2026-06-06 23:44:25.088229 | When transforming future variables, ensure that unit ranges are comparable (parameter state)!
+#> [Setup] 2026-11-02 20:52:17.797217 | When transforming future variables, ensure that unit ranges are comparable (parameter state)!
 out <- insights_fraction(range = sc,
                          lu = lu)
 

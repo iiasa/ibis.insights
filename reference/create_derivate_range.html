@@ -103,8 +103,7 @@ format or left in the original units (Default: <code>FALSE</code>).</p></dd>
 </ul></div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
-    <p>This is rather an internal function created for a specific use and project. It
-might be properly described in an example later.</p>
+    <p>This is rather an internal function created for a specific use and project.</p>
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
@@ -113,12 +112,35 @@ might be properly described in an example later.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span> <span class="co"># Assuming derivates of temperature have been created for a model, this</span></span></span>
-<span class="r-in"><span> <span class="co"># recreates the range over which they apply.</span></span></span>
-<span class="r-in"><span> <span class="va">deriv</span> <span class="op">&lt;-</span> <span class="fu">create_derivate_range</span><span class="op">(</span><span class="va">env</span>, varname <span class="op">=</span> <span class="st">"Temperature"</span>,</span></span>
-<span class="r-in"><span>  co <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, to_binary <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Toy temperature layer and coefficients for a binned derivative</span></span></span>
+<span class="r-in"><span><span class="va">env</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span>nrows <span class="op">=</span> <span class="fl">2</span>, ncols <span class="op">=</span> <span class="fl">2</span>, vals <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">15</span>, <span class="fl">25</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">env</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"Temperature"</span></span></span>
+<span class="r-in"><span><span class="va">co</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Feature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"(Intercept)"</span>, <span class="st">"bin_Temperature_10_20"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  Beta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Range of values covered by the positive coefficient (10 to 20)</span></span></span>
+<span class="r-in"><span><span class="fu">ibis.insights</span><span class="fu">:::</span><span class="fu">create_derivate_range</span><span class="op">(</span><span class="va">env</span>, varname <span class="op">=</span> <span class="st">"Temperature"</span>, co <span class="op">=</span> <span class="va">co</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> class       : SpatRaster</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> size        : 2, 2, 1  (nrow, ncol, nlyr)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> resolution  : 180, 90  (x, y)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> coord. ref. : lon/lat WGS 84 (CRS84) (OGC:CRS84)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> source(s)   : memory</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> name        : Temperature</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> min value   :           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> max value   :          15</span>
+<span class="r-in"><span><span class="co"># Same range converted to a binary layer</span></span></span>
+<span class="r-in"><span><span class="fu">ibis.insights</span><span class="fu">:::</span><span class="fu">create_derivate_range</span><span class="op">(</span><span class="va">env</span>, varname <span class="op">=</span> <span class="st">"Temperature"</span>, co <span class="op">=</span> <span class="va">co</span>,</span></span>
+<span class="r-in"><span>  to_binary <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> class       : SpatRaster</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> size        : 2, 2, 1  (nrow, ncol, nlyr)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> resolution  : 180, 90  (x, y)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> coord. ref. : lon/lat WGS 84 (CRS84) (OGC:CRS84)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> source(s)   : memory</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> name        : Temperature</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> min value   :           0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> max value   :           1</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
@@ -131,7 +153,7 @@ might be properly described in an example later.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

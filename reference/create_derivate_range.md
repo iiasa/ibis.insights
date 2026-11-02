@@ -58,7 +58,7 @@ object containing the predictor range.
 ## Note
 
 This is rather an internal function created for a specific use and
-project. It might be properly described in an example later.
+project.
 
 ## Author
 
@@ -67,10 +67,33 @@ Martin Jung
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
- # Assuming derivates of temperature have been created for a model, this
- # recreates the range over which they apply.
- deriv <- create_derivate_range(env, varname = "Temperature",
-  co = coef(fit), to_binary = TRUE)
-} # }
+# Toy temperature layer and coefficients for a binned derivative
+env <- terra::rast(nrows = 2, ncols = 2, vals = c(5, 15, 25, 10))
+names(env) <- "Temperature"
+co <- data.frame(Feature = c("(Intercept)", "bin_Temperature_10_20"),
+  Beta = c(0, 1))
+
+# Range of values covered by the positive coefficient (10 to 20)
+ibis.insights:::create_derivate_range(env, varname = "Temperature", co = co)
+#> class       : SpatRaster
+#> size        : 2, 2, 1  (nrow, ncol, nlyr)
+#> resolution  : 180, 90  (x, y)
+#> extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)
+#> coord. ref. : lon/lat WGS 84 (CRS84) (OGC:CRS84)
+#> source(s)   : memory
+#> name        : Temperature
+#> min value   :           0
+#> max value   :          15
+# Same range converted to a binary layer
+ibis.insights:::create_derivate_range(env, varname = "Temperature", co = co,
+  to_binary = TRUE)
+#> class       : SpatRaster
+#> size        : 2, 2, 1  (nrow, ncol, nlyr)
+#> resolution  : 180, 90  (x, y)
+#> extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)
+#> coord. ref. : lon/lat WGS 84 (CRS84) (OGC:CRS84)
+#> source(s)   : memory
+#> name        : Temperature
+#> min value   :           0
+#> max value   :           1
 ```

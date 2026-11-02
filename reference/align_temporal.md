@@ -80,7 +80,7 @@ Martin Jung
 ``` r
 require(terra)
 #> Loading required package: terra
-#> terra 1.9.27
+#> terra 1.9.50
 
 source <- terra::rast(nrow = 1, ncol = 1, nlyr = 3, vals = c(10, 20, 30))
 terra::time(source) <- as.Date(c("2000-01-01", "2010-01-01", "2020-01-01"))
