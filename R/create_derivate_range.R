@@ -15,8 +15,7 @@
 #' * For \code{'hinge'} the combined \code{min} is returned.
 #'
 #' @note
-#' This is rather an internal function created for a specific use and project. It
-#' might be properly described in an example later.
+#' This is rather an internal function created for a specific use and project.
 #'
 #' @param env The original variable stacks as [`SpatRaster`] or [`stars`].
 #' @param varname A [`character`] of the variable name. Needs to be present in
@@ -28,12 +27,17 @@
 #'
 #' @returns A [`SpatRaster`] object containing the predictor range.
 #' @examples
-#' \dontrun{
-#'  # Assuming derivates of temperature have been created for a model, this
-#'  # recreates the range over which they apply.
-#'  deriv <- create_derivate_range(env, varname = "Temperature",
-#'   co = coef(fit), to_binary = TRUE)
-#' }
+#' # Toy temperature layer and coefficients for a binned derivative
+#' env <- terra::rast(nrows = 2, ncols = 2, vals = c(5, 15, 25, 10))
+#' names(env) <- "Temperature"
+#' co <- data.frame(Feature = c("(Intercept)", "bin_Temperature_10_20"),
+#'   Beta = c(0, 1))
+#'
+#' # Range of values covered by the positive coefficient (10 to 20)
+#' ibis.insights:::create_derivate_range(env, varname = "Temperature", co = co)
+#' # Same range converted to a binary layer
+#' ibis.insights:::create_derivate_range(env, varname = "Temperature", co = co,
+#'   to_binary = TRUE)
 #'
 #' @author Martin Jung
 #' @keywords utils

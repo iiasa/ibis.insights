@@ -20,8 +20,8 @@ Description: Implements the InSiGHTS (Index of Habitat Availability) modelling
     <doi:10.1111/cobi.12532>, Visconti et al. (2016) <doi:10.1111/conl.12159>
     and Baisero et al. (2021) <doi:10.1016/j.oneear.2020.05.015>.
 License: CC BY 4.0
-URL: https://github.com/iiasa/ibis.insights, https://iiasa.github.io/ibis.insights/, https://github.com/iiasa/insights
-BugReports: https://github.com/iiasa/insights/issues
+URL: https://github.com/iiasa/ibis.insights, https://iiasa.github.io/ibis.insights/
+BugReports: https://github.com/iiasa/ibis.insights/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Imports: 

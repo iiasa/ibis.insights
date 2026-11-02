@@ -1,5 +1,6 @@
 ^Insights\.Rproj$
 ^\.Rproj\.user$
+^\.git$
 ^README\.Rmd$
 ^LICENSE\.md$
 ^data-raw$
@@ -8,3 +9,4 @@
 ^docs$
 ^pkgdown$
 ^CITATION\.cff$
+^cran-comments\.md$
