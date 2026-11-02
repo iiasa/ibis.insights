@@ -16,10 +16,12 @@ knitr::opts_chunk$set(
 # ibis.insights: InSiGHTS Index of Habitat Availability
 
 <!-- badges: start -->
+[![CRAN status](https://www.r-pkg.org/badges/version/ibis.insights)](https://CRAN.R-project.org/package=ibis.insights)
 [![R-CMD-check](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: CC BY 4.0](https://img.shields.io/badge/license-CC%20BY%204.0-blue.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Codecov Status](https://codecov.io/gh/iiasa/ibis.insights/branch/main/graph/badge.svg)](https://app.codecov.io/gh/iiasa/ibis.insights?branch=main)<!-- badges: end -->
+[![Codecov Status](https://codecov.io/gh/iiasa/ibis.insights/branch/main/graph/badge.svg)](https://app.codecov.io/gh/iiasa/ibis.insights?branch=main)
+<!-- badges: end -->
 
 The **ibis.insights** package implements the InSiGHTS (Index of Habitat Availability) framework for quantifying how climate change and land-use change affect the available habitat of a species over time. The index captures the extent of suitable habitat within the current or projected range of a species, with ranges sourced from existing maps (e.g. IUCN) or from species distribution models (SDMs).
 
@@ -143,7 +145,7 @@ using the *stars* package or directly through the ibis.iSDM scenario functionali
 ```{r with-scenario}
 
 # Create a future scenario
-sc <- scenario(fit) |>
+sc <- scenario(fit, copy_model = TRUE) |>
   add_predictors(env = pred_climate, transform = 'scale', derivates = "none") |>
   threshold() |>
   project()

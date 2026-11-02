@@ -5,13 +5,16 @@
 
 <!-- badges: start -->
 
+[![CRAN
+status](https://www.r-pkg.org/badges/version/ibis.insights)](https://CRAN.R-project.org/package=ibis.insights)
 [![R-CMD-check](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/iiasa/ibis.insights/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: CC BY
 4.0](https://img.shields.io/badge/license-CC%20BY%204.0-blue.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Codecov
-Status](https://codecov.io/gh/iiasa/ibis.insights/branch/main/graph/badge.svg)](https://app.codecov.io/gh/iiasa/ibis.insights?branch=main)<!-- badges: end -->
+Status](https://codecov.io/gh/iiasa/ibis.insights/branch/main/graph/badge.svg)](https://app.codecov.io/gh/iiasa/ibis.insights?branch=main)
+<!-- badges: end -->
 
 The **ibis.insights** package implements the InSiGHTS (Index of Habitat
 Availability) framework for quantifying how climate change and land-use
@@ -76,18 +79,17 @@ so summarize it with `insights_summary(..., toArea = FALSE)` to avoid
 multiplying by cell area again.
 
 Use `insights_discount()` before either method when a habitat class
-should be weighted by an age or maturity layer. The default
-`target_age` / `target` parameterization requires a land-use-specific
-age or maturity layer and an age at which that land use should reach a
-chosen fraction of full habitat value. The optional `tau`
-parameterization requires habitat age or time since transition into
-suitable land use, plus a species- or group-specific establishment
-timescale in the same time units. The smoothed-threshold `a50` / `k`
-parameterization requires the same habitat-age or transition-age layer,
-the age at which establishment quality reaches 0.5, and a steepness
-parameter in inverse age units. Use `insights_summary()` after either
-workflow to obtain absolute totals, standard relative change, or the
-bounded symmetric relative difference.
+should be weighted by an age or maturity layer. The default `target_age`
+/ `target` parameterization requires a land-use-specific age or maturity
+layer and an age at which that land use should reach a chosen fraction
+of full habitat value. The optional `tau` parameterization requires
+habitat age or time since transition into suitable land use, plus a
+species- or group-specific establishment timescale in the same time
+units. The smoothed-threshold `a50` / `k` parameterization requires the
+same habitat-age or transition-age layer, the age at which establishment
+quality reaches 0.5, and a steepness parameter in inverse age units. Use
+`insights_summary()` after either workflow to obtain absolute totals,
+standard relative change, or the bounded symmetric relative difference.
 
 ``` r
 # Basic packages for use
@@ -97,6 +99,7 @@ library(glmnet)
 #> Warning: package 'glmnet' was built under R version 4.5.3
 #> Warning: package 'Matrix' was built under R version 4.5.3
 library(terra)
+#> Warning: package 'terra' was built under R version 4.5.3
 ```
 
 The workflow below uses **ibis.iSDM** to train a simple SDM and then
@@ -158,7 +161,7 @@ plot(out, col = c("grey90", "#FDE8A9", "#FBD35C", "#D1C34A", "#8EB65C",
 # Summarize
 insights_summary(out)
 #>   time suitability unit
-#> 1   NA    259821.3  km2
+#> 1   NA    253344.3  km2
 ```
 
 Of course it is also possible to directly supply a multi-dimensional
@@ -168,21 +171,31 @@ scenario functionalities (see example below).
 ``` r
 
 # Create a future scenario
-sc <- scenario(fit) |>
+sc <- scenario(fit, copy_model = TRUE) |>
   add_predictors(env = pred_climate, transform = 'scale', derivates = "none") |>
   threshold() |>
   project()
+#> [33m[Scenario] 2026-11-02 20:52:15.351303 | Saving model directly in scenario object![39m
 #> ! State variable of transformation not found?
-#> [32m[Scenario] 2026-06-06 23:44:23.016945 | Adding scenario predictors...[39m
-#> [32m[Setup] 2026-06-06 23:44:23.017903 | Transforming predictors...[39m
-#> [32m[Scenario] 2026-06-06 23:44:23.759926 | Starting suitability projections for 9 timesteps from 2015-01-01 <> 2095-01-01[39m
+#> [32m[Scenario] 2026-11-02 20:52:15.408055 | Adding scenario predictors...[39m
+#> [32m[Setup] 2026-11-02 20:52:15.409189 | Transforming predictors...[39m
+#> [32m[Scenario] 2026-11-02 20:52:16.304355 | Starting suitability projections for 9 timesteps from 2015-01-01 <> 2095-01-01[39m
+#> Creating projections (-) [=========>------------------------------------]
+#> 22%Creating projections (\) [==============>-------------------------------]
+#> 33%Creating projections (|) [===================>--------------------------]
+#> 44%Creating projections (/) [=========================>--------------------]
+#> 56%Creating projections (-) [==============================>---------------]
+#> 67%Creating projections (\) [===================================>----------]
+#> 78%Creating projections (|) [========================================>-----]
+#> 89%Creating projections (/) [==============================================]
+#> 100%
 
 # --- #
 # Now apply InSiGHTS using time series of future land use
 lu <- pred_future |> stars:::select.stars(primn, secdf)
 # Normalize for the sake of an example. Note that fractions are needed!
 lu <- ibis.iSDM::predictor_transform(lu, "norm") |> round(2) 
-#> [31m[Setup] 2026-06-06 23:44:25.088229 | When transforming future variables, ensure that unit ranges are comparable (parameter state)![39m
+#> [31m[Setup] 2026-11-02 20:52:17.797217 | When transforming future variables, ensure that unit ranges are comparable (parameter state)![39m
 out <- insights_fraction(range = sc,
                          lu = lu)
 

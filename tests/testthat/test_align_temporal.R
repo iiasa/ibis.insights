@@ -116,6 +116,40 @@ test_that("align_temporal harmonizes stars unit-based years", {
   )
 })
 
+test_that("align_temporal accepts CF epochs with non-padded dates", {
+
+  skip_if_not_installed("stars")
+  skip_if_not_installed("units")
+  suppressWarnings(requireNamespace("stars", quietly = TRUE))
+  suppressWarnings(requireNamespace("units", quietly = TRUE))
+
+  source_time <- units::set_units(
+    as.numeric(as.Date(c("2000-01-01", "2020-01-01"))),
+    "days"
+  )
+  source_unit <- attr(source_time, "units")
+  source_unit$numerator <- "days since 1970-1-1"
+  attr(source_time, "units") <- source_unit
+
+  source <- stars::st_as_stars(list(
+    value = array(c(1, 2), dim = c(x = 1, y = 1, time = 2))
+  ))
+  source <- stars::st_set_dimensions(source, "time", values = source_time)
+
+  target <- stars::st_as_stars(list(
+    value = array(1:3, dim = c(x = 1, y = 1, time = 3))
+  ))
+  target <- stars::st_set_dimensions(
+    target,
+    "time",
+    values = as.Date(c("1990-01-01", "2010-01-01", "2030-01-01"))
+  )
+
+  out <- align_temporal(source, target)
+
+  expect_equal(as.numeric(out[[1]]), c(1, 1, 2))
+})
+
 test_that("align_temporal validates matching temporal object types", {
 
   skip_if_not_installed("terra")

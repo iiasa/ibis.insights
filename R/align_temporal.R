@@ -99,7 +99,7 @@ methods::setMethod(
           years <- as.integer(as.numeric(vals))
         } else {
           base_unit <- trimws(sub("\\s+since\\s+.*$", "", unit_str_lower))
-          epoch_match <- regexpr("\\d{4}-\\d{2}-\\d{2}", unit_str_lower)
+          epoch_match <- regexpr("\\d{4}-\\d{1,2}-\\d{1,2}", unit_str_lower)
 
           if(epoch_match[1] < 0) {
             stop(
@@ -222,7 +222,7 @@ methods::setMethod(
           years <- as.integer(as.numeric(vals))
         } else {
           base_unit <- trimws(sub("\\s+since\\s+.*$", "", unit_str_lower))
-          epoch_match <- regexpr("\\d{4}-\\d{2}-\\d{2}", unit_str_lower)
+          epoch_match <- regexpr("\\d{4}-\\d{1,2}-\\d{1,2}", unit_str_lower)
 
           if(epoch_match[1] < 0) {
             stop(

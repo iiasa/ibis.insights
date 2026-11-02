@@ -195,7 +195,7 @@ methods::setMethod(
     names(new) <- rep(names(obj), terra::nlyr(new))
 
     # Convert to the scenarios to a data.frame
-    df <- stars:::as.data.frame.stars(stars:::st_as_stars(new)) |>
+    df <- stars:::as.data.frame.stars(stars::st_as_stars(new)) |>
       (\(.) subset(., stats::complete.cases(.)))()
     # Rename
     names(df)[3:4] <- c("band", "area")
